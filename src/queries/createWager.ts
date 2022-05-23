@@ -35,7 +35,10 @@ export default async function createWager(title: string, selection1: string, sel
             // Create escrow wallet for the wager
             const createdEscrows = await createWagerEscrows(wager);
             if(!createdEscrows) {
-                throw new ServerError("Error creating wager wallet."); // TODO: DELETE WAGER IF ERR (OR CREATE)
+                // Delete wager if error
+                await Wager.findByIdAndDelete(wager._id);
+
+                throw new ServerError("Error creating wager wallet.");
             }
 
             await Wager.findByIdAndUpdate(wager._id, { status: 'live' })

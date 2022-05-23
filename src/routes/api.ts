@@ -79,6 +79,7 @@ router.get('/wagers', async (req, res) => {
             selections: 1,
             startDate: 1,
             endDate: 1,
+            gameDate: 1,
             _id: 1
          })
         

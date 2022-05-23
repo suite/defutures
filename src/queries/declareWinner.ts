@@ -13,11 +13,6 @@ export default async function declareWinner(selectionId: ObjectId): Promise<bool
         const otherWinners = await Wager.findOne({ 'selections._id': selectionId, $or: [{'status': 'completed'}, {'status': { $ne: 'closed' }}] })
         if(otherWinners) throw new ServerError("Unable to declare winner. Either winner already selected or game is not closed.");
 
-        await Wager.updateOne({ 'selections._id': selectionId }, { '$set': {
-            'selections.$.winner': true,
-            'status': 'completed'
-        }})
-
         // Move losing funds to winning wallet
         const wager: WagerSchema | null = await Wager.findOne({ 'selections._id': selectionId })
 
@@ -44,6 +39,12 @@ export default async function declareWinner(selectionId: ObjectId): Promise<bool
         const tx = await transferSplToken(loserWalletKeypair, winnerSelectionPubkey, loserWalletBalance)
 
         console.log(`Transfering ${loserWalletBalance} from ${loserSelectionPubkey.toString()} to ${winnerSelectionPubkey.toString()} tx: ${tx}`)
+
+        // Finally update status
+        await Wager.updateOne({ 'selections._id': selectionId }, { '$set': {
+            'selections.$.winner': true,
+            'status': 'completed'
+        }})
 
         return true;
     } catch (err) {
