@@ -9,7 +9,7 @@ import { ServerError } from "../misc/serverError";
 //     date.getUTCHours(), date.getUTCMinutes(), date.getUTCSeconds());
 // }
 
-export default async function createWager(title: string, selection1: string, selection2: string, startDate: Date, endDate: Date, gameDate: Date): Promise<WagerSchema | ServerError> {
+export default async function createWager(title: string, selection1: string, selection2: string, startDate: string, endDate: string, gameDate: string): Promise<WagerSchema | ServerError> {
     try {
         const wagerOptions = {
             title,
