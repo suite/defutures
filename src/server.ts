@@ -13,10 +13,6 @@ const port = process.env.PORT || 3001;
 
 const CORS_ORIGIN = process.env.ORIGIN as string || 'http://localhost:3000';
  
-app.use(express.json());
-app.use(cors({ credentials: true, origin: CORS_ORIGIN }));
-app.use(cookieParser());
-
 /* THOUGHTS:
 - use cloudflare
 - add cancel (also cancel schedule)
@@ -43,6 +39,14 @@ const authorization = (req: express.Request, res: express.Response, next: expres
 
 (async () => {
     await connectMongo();
+
+    const corsOpts = { credentials: true, origin: CORS_ORIGIN }
+
+    console.log("Cors opts:", corsOpts)
+
+    app.use(express.json());
+    app.use(cors(corsOpts));
+    app.use(cookieParser());
 
     // Public api
     app.use('/api', apiRoute);
