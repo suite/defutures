@@ -32,9 +32,9 @@ const wagerSchema = new mongoose.Schema({
         default: 'upcoming'
     },
     selections: { type: [wagerSelection] },
-    startDate: { type: Date },
-    endDate: { type: Date },
-    gameDate: { type: Date },
+    startDate: { type: Number },
+    endDate: { type: Number },
+    gameDate: { type: Number },
     placedBets: { type: [placedBet], default: []},
 });
 

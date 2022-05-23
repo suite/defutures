@@ -53,7 +53,7 @@ export const connectMongo = async () => {
 AGENDA.define("update status", async (job: Job) => {
   const { status, wagerId, wager } = job.attrs.data as any;
 
-  if(status === 'live' && wager) {
+  if(status === 'live') {
       const status = await createWagerEscrows(wager as WagerSchema);
       if(!status) return;
   }

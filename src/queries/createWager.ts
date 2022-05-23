@@ -4,9 +4,9 @@ import createWagerEscrows from "./createWagerEscrows";
 import Wager from '../model/wager';
 import { ServerError } from "../misc/serverError";
 
-export function getUTCTime(date: Date): Date {
-    return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(),
-    date.getUTCHours(), date.getUTCMinutes(), date.getUTCSeconds()));
+export function getUTCTime(date: Date): number {
+    return Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(),
+    date.getUTCHours(), date.getUTCMinutes(), date.getUTCSeconds());
 }
 
 export default async function createWager(title: string, selection1: string, selection2: string, startDate: string, endDate: string, gameDate: string): Promise<WagerSchema | ServerError> {
@@ -54,16 +54,17 @@ export default async function createWager(title: string, selection1: string, sel
         // Schedule for future games
         // TODO: send websocket on live (or client side)
         if(startDateUTC > currentDateUTC) {
-            await AGENDA.schedule(startDateUTC.toUTCString(), "update status", {
+            await AGENDA.schedule(new Date(startDate), "update status", {
                 wagerId: wager._id,
                 status: 'live',
                 wager
             });
         }
         
-        await AGENDA.schedule(endDateUTC.toUTCString(), "update status", {
+        await AGENDA.schedule(new Date(endDate), "update status", {
             wagerId: wager._id,
-            status: 'closed'
+            status: 'closed',
+            wager
         });
         
         return wager;

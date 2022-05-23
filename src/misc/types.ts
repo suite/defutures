@@ -29,9 +29,9 @@ export type WagerSchema = {
     title: string,
     status: 'upcoming' | 'live' | 'closed' | 'completed',
     selections: Array<WagerSelectionSchema>,
-    startDate: Date,
-    endDate: Date,
-    gameDate: Date,
+    startDate: number,
+    endDate: number,
+    gameDate: number,
     placedBets: Array<WagerBetSchema>,
     publicKey: string
 }
