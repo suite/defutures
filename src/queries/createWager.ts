@@ -54,14 +54,14 @@ export default async function createWager(title: string, selection1: string, sel
         // Schedule for future games
         // TODO: send websocket on live (or client side)
         if(startDateUTC > currentDateUTC) {
-            await AGENDA.schedule(startDateUTC, "update status", {
+            await AGENDA.schedule(startDateUTC.toUTCString(), "update status", {
                 wagerId: wager._id,
                 status: 'live',
                 wager
             });
         }
         
-        await AGENDA.schedule(endDateUTC, "update status", {
+        await AGENDA.schedule(endDateUTC.toUTCString(), "update status", {
             wagerId: wager._id,
             status: 'closed'
         });
