@@ -9,7 +9,7 @@ export function getUTCTime(date: Date): number {
     date.getUTCHours(), date.getUTCMinutes(), date.getUTCSeconds());
 }
 
-export default async function createWager(title: string, selection1: string, selection2: string, startDate: string, endDate: string, gameDate: string): Promise<WagerSchema | ServerError> {
+export default async function createWager(title: string, selection1: string, selection2: string, startDate: number, endDate: number, gameDate: number): Promise<WagerSchema | ServerError> {
     try {
         const startDateUTC = getUTCTime(new Date(startDate));
         const endDateUTC = getUTCTime(new Date(endDate));
