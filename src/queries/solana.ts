@@ -107,6 +107,7 @@ export async function getTokenBalanceChange(signature: string, escrowWallet: str
     // const netUser = postTokenAmountUser - preTokenAmountUser;
     const netEscrow = postTokenAmountEscrow - preTokenAmountEscrow;
 
+    // TODO: Might be able to fix
     const timestamp = transactionDetails.blockTime ? new Date(transactionDetails.blockTime * 1000) : undefined;
 
     return {

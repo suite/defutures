@@ -2,7 +2,7 @@ import express from "express";
 import { ObjectId } from "mongoose";
 import { ServerError } from "../misc/serverError";
 import WagerWallet from "../model/wagerWallet";
-import createWager from "../queries/createWager";
+import createWager, { getUTCTime } from "../queries/createWager";
 import declareWinner from "../queries/declareWinner";
 
 const router = express.Router();
@@ -15,7 +15,7 @@ router.post('/createWager', async (req, res) => {
     const { title, selection1, selection2, startDate, endDate, gameDate } = req.body;
 
     if (!(title && selection1 && selection2 && startDate && endDate && gameDate) || 
-        new Date(startDate).getTime() > new Date(endDate).getTime()) // Ensures end date > start date
+        getUTCTime(startDate) > getUTCTime(endDate)) // Ensures end date > start date
         {
             res.status(400).send({ message: "Invalid input", data: {} });
             return;
