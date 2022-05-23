@@ -40,7 +40,7 @@ export const connectMongo = async () => {
     await AGENDA.start();
 
     // Checks for live games and searches for missing txs
-    await AGENDA.every("1 minutes", "check transactions");
+    await AGENDA.every("5 minutes", "check transactions");
 
   } catch (err) {
     console.log("database connection failed. exiting now...");
