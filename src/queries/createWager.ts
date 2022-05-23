@@ -4,13 +4,16 @@ import createWagerEscrows from "./createWagerEscrows";
 import Wager from '../model/wager';
 import { ServerError } from "../misc/serverError";
 
-// export function getUTCTime(date: Date): number {
-//     return Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(),
-//     date.getUTCHours(), date.getUTCMinutes(), date.getUTCSeconds());
-// }
+export function getUTCTime(date: Date): Date {
+    return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(),
+    date.getUTCHours(), date.getUTCMinutes(), date.getUTCSeconds()));
+}
 
 export default async function createWager(title: string, selection1: string, selection2: string, startDate: string, endDate: string, gameDate: string): Promise<WagerSchema | ServerError> {
     try {
+        const startDateUTC = getUTCTime(new Date(startDate));
+        const endDateUTC = getUTCTime(new Date(endDate));
+        const gameDateUTC = getUTCTime(new Date(gameDate));
 
         const wagerOptions = {
             title,
@@ -23,9 +26,9 @@ export default async function createWager(title: string, selection1: string, sel
                     title: selection2
                 }
             ],
-            startDate: new Date(startDate).toUTCString(),
-            endDate: new Date(endDate).toUTCString(),
-            gameDate: new Date(gameDate).toUTCString()
+            startDate: startDateUTC,
+            endDate: endDateUTC,
+            gameDate: gameDateUTC
         }
 
         // if(new Date(startDate) < new Date()) {
