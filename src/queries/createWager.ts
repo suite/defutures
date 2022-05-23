@@ -23,9 +23,9 @@ export default async function createWager(title: string, selection1: string, sel
                     title: selection2
                 }
             ],
-            startDate,
-            endDate,
-            gameDate
+            startDate: new Date(startDate).toUTCString(),
+            endDate: new Date(endDate).toUTCString(),
+            gameDate: new Date(gameDate).toUTCString()
         }
 
         // if(new Date(startDate) < new Date()) {
