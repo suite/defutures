@@ -9,7 +9,7 @@ import jwt from 'jsonwebtoken';
 import { PublicKey } from "@solana/web3.js";
 
 const app = express();
-const port = 3001;
+const port = process.env.PORT || 3001;
 
 const CORS_ORIGIN = process.env.ORIGIN as string || 'http://localhost:3000';
  
