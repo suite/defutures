@@ -12,7 +12,7 @@ const app = express();
 const port = 3001;
 
 const CORS_ORIGIN = process.env.ORIGIN as string || 'http://localhost:3000';
-
+ 
 app.use(express.json());
 app.use(cors({ credentials: true, origin: CORS_ORIGIN }));
 app.use(cookieParser());
