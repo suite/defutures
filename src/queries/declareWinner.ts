@@ -18,8 +18,8 @@ export default async function declareWinner(selectionId: ObjectId): Promise<bool
 
         if(!wager) throw new ServerError("Unable to query wager.");
 
-        const losingSelection = wager.selections.filter((selection) => !selection.winner)[0];
-        const winningSelection = wager.selections.filter((selection) => selection.winner)[0];
+        const losingSelection = wager.selections.filter((selection) => JSON.stringify(selection._id) !== JSON.stringify(selectionId))[0];
+        const winningSelection = wager.selections.filter((selection) => JSON.stringify(selection._id) === JSON.stringify(selectionId))[0];
 
         const loserSelectionPubkey = new PublicKey(losingSelection.publicKey);
         const winnerSelectionPubkey = new PublicKey(winningSelection.publicKey);
