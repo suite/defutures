@@ -11,6 +11,7 @@ import { ServerError } from "../misc/serverError";
 
 export default async function createWager(title: string, selection1: string, selection2: string, startDate: string, endDate: string, gameDate: string): Promise<WagerSchema | ServerError> {
     try {
+
         const wagerOptions = {
             title,
             status: "upcoming",
@@ -22,9 +23,9 @@ export default async function createWager(title: string, selection1: string, sel
                     title: selection2
                 }
             ],
-            startDate,
-            endDate,
-            gameDate,
+            startDate: new Date(startDate),
+            endDate: new Date(endDate),
+            gameDate: new Date(gameDate),
         }
 
         if(new Date(startDate) < new Date()) {
