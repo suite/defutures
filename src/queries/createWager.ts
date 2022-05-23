@@ -11,10 +11,7 @@ export function getUTCTime(date: Date): number {
 
 export default async function createWager(title: string, selection1: string, selection2: string, startDate: number, endDate: number, gameDate: number): Promise<WagerSchema | ServerError> {
     try {
-        const startDateUTC = getUTCTime(new Date(startDate));
-        const endDateUTC = getUTCTime(new Date(endDate));
-        const gameDateUTC = getUTCTime(new Date(gameDate));
-        const currentDateUTC = getUTCTime(new Date());
+        const currentTime = new Date().getTime()
 
         const wagerOptions = {
             title,
@@ -27,20 +24,14 @@ export default async function createWager(title: string, selection1: string, sel
                     title: selection2
                 }
             ],
-            startDate: startDateUTC,
-            endDate: endDateUTC,
-            gameDate: gameDateUTC
+            startDate,
+            endDate,
+            gameDate
         }
-
-        // TODO: read into local zone frotnned
-
-        // if(new Date(startDate) < new Date()) {
-        //     wagerOptions.status = "live"
-        // }
 
         const wager: WagerSchema = await Wager.create(wagerOptions)
 
-        if(startDateUTC < currentDateUTC) {
+        if(startDate < currentTime) {
             // Create escrow wallet for the wager
             const createdEscrows = await createWagerEscrows(wager);
             if(!createdEscrows) {
@@ -53,7 +44,7 @@ export default async function createWager(title: string, selection1: string, sel
         // Schedule status' NOTE: Max agenda concurrency 20, keep in mind.
         // Schedule for future games
         // TODO: send websocket on live (or client side)
-        if(startDateUTC > currentDateUTC) {
+        if(startDate > currentTime) {
             await AGENDA.schedule(new Date(startDate), "update status", {
                 wagerId: wager._id,
                 status: 'live',
