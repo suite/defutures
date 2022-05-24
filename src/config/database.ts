@@ -51,23 +51,31 @@ export const connectMongo = async () => {
 
 // pretty sure agenda handles errors
 AGENDA.define("update status", async (job: Job) => {
-  const { status, wagerId, wager } = job.attrs.data as any;
+  const { status, wagerId, wager } = job.attrs.data as {
+    status: string,
+    wagerId: ObjectId,
+    wager: WagerSchema
+  };
 
   if(status === 'live') {
-      const status = await createWagerEscrows(wager as WagerSchema);
+      const status = await createWagerEscrows(wager);
       if(!status) return;
   }
 
   // Final check for missing txs before closing 
   if(status === 'closed') {
-      for(const selection of wager.selections) {
+      const updatedWager: WagerSchema | null = await Wager.findById(wager._id);
+
+      if(updatedWager) {
+        for(const selection of updatedWager.selections) {
           if(selection.publicKey) {
               await findMissingEscrowTransactions(new PublicKey(selection.publicKey))
           }
+        }
       }
   }
 
-  await Wager.updateOne({ _id: (wagerId as ObjectId) }, { status })
+  await Wager.updateOne({ _id: wagerId }, { status })
 })
 
 AGENDA.define("check transactions", async (job: Job) => {
