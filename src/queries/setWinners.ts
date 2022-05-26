@@ -26,9 +26,8 @@ export default async function setWinners(winningSelection: ObjectId) {
         // Get winning selection volume
         const winningSelectionVolume = selection.totalSpent;
 
-        // Calculate payout odds, truncate after PAYOUT_PRECISION
+        // Calculate payout odds
         let payoutMultiplier = totalWagerVolume / winningSelectionVolume;
-        payoutMultiplier = Math.floor(payoutMultiplier * PAYOUT_PRECISION) / PAYOUT_PRECISION;
  
         for(const placedBet of userBets.placedBets) {
             const payout = calculateWinnings(placedBet, payoutMultiplier)
