@@ -7,12 +7,17 @@ const betAmount = new mongoose.Schema({
     signature: { type: String },
 });
 
+const winAmount = new mongoose.Schema({
+    amount: { type: Number },
+    signature: { type: String },
+});
+
 const placedBet = new mongoose.Schema({
     publicKey: { type: String },
     amounts: { type: [betAmount], default: [] },
     selectionId: { type: mongoose.Schema.Types.ObjectId },
     nickname: { type: String, default: "" },
-    claimed: { type: Boolean, default: false },
+    winAmount: { type: winAmount, default: { } },
 });
 
 const wagerSelection = new mongoose.Schema({

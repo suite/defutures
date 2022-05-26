@@ -1,5 +1,5 @@
 import { TOKEN_MINT, CONNECTION, FUND_KEYPAIR, KEY, SALT, ALGORITHM } from "../config/database";
-import { TokenBalanceResult } from "../misc/types";
+import { SplTransferResult, TokenBalanceResult } from "../misc/types";
 import crypto from "crypto";
 import * as splToken from "@solana/spl-token";
 import * as web3 from '@solana/web3.js';
@@ -7,31 +7,43 @@ import { ServerError } from "../misc/serverError";
 const bip39 = require('bip39');
 
 // For declare winner, claim winnings
-export async function transferSplToken(fromKeypair: web3.Keypair, toPubkey: web3.PublicKey, amount: number): Promise<web3.TransactionSignature> {
-    // Assume escrow has token account created
-    const fromTokenAccount = await splToken.getAssociatedTokenAddress(TOKEN_MINT, fromKeypair.publicKey);
-   
-    // Ensure destination has token acount
-    const toTokenAccount = await splToken.getOrCreateAssociatedTokenAccount(CONNECTION, FUND_KEYPAIR, TOKEN_MINT, toPubkey);
-   
-    const signature = await splToken.transfer(
-         CONNECTION,
-        FUND_KEYPAIR,
-        fromTokenAccount,
-        toTokenAccount.address,
-        fromKeypair,
-        amount * web3.LAMPORTS_PER_SOL,
-    )
+export async function transferSplToken(fromKeypair: web3.Keypair, toPubkey: web3.PublicKey, amount: number): Promise<SplTransferResult> {
+    let signature = undefined;
+    try {
+        // Assume escrow has token account created
+        const fromTokenAccount = await splToken.getAssociatedTokenAddress(TOKEN_MINT, fromKeypair.publicKey);
+        
+        // Ensure destination has token acount
+        const toTokenAccount = await splToken.getOrCreateAssociatedTokenAccount(CONNECTION, FUND_KEYPAIR, TOKEN_MINT, toPubkey);
 
-    const result = await CONNECTION.confirmTransaction(signature, "finalized");
+        signature = await splToken.transfer(
+            CONNECTION,
+            FUND_KEYPAIR,
+            fromTokenAccount,
+            toTokenAccount.address,
+            fromKeypair,
+            amount * web3.LAMPORTS_PER_SOL,
+        )
 
-    // TODO: RETRY  https://stackoverflow.com/questions/71419088/whats-a-better-way-to-handle-timed-out-awaiting-confirmation-on-transaction-e
-    if(result.value.err) {
-        console.log("Transfer spl err " + result.value.err.toString())
-        throw new ServerError("Transfer confirmation spl err");
-    } 
-    
-    return signature;
+        const result = await CONNECTION.confirmTransaction(signature, "finalized");
+
+        // TODO: RETRY  https://stackoverflow.com/questions/71419088/whats-a-better-way-to-handle-timed-out-awaiting-confirmation-on-transaction-e
+        if(result.value.err) {
+            console.log("Transfer spl err " + result.value.err.toString() + " for tx: " + signature)
+            
+            return {
+                signature,
+                error: new ServerError(result.value.err.toString())
+            }
+        }
+
+        return { signature };
+    } catch (error) {
+        return {
+            signature,
+            error
+        }
+    }
 }
 
 export async function getBalance(publicKey: web3.PublicKey): Promise<number | null> {

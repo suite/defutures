@@ -5,6 +5,7 @@ import WagerWallet from '../model/wagerWallet';
 import Wager from '../model/wager';
 import { PublicKey } from "@solana/web3.js";
 import { ServerError } from "../misc/serverError";
+import setWinners from "./setWinners";
 
 // !!!! finish up place bet, cleanup
 export default async function declareWinner(selectionId: ObjectId): Promise<boolean | ServerError> {
@@ -36,9 +37,13 @@ export default async function declareWinner(selectionId: ObjectId): Promise<bool
 
         if(!loserWalletBalance) throw new ServerError("Err fetching bal");
 
-        const tx = await transferSplToken(loserWalletKeypair, winnerSelectionPubkey, loserWalletBalance)
+        const tx = await transferSplToken(loserWalletKeypair, winnerSelectionPubkey, loserWalletBalance);
 
-        console.log(`Transfering ${loserWalletBalance} from ${loserSelectionPubkey.toString()} to ${winnerSelectionPubkey.toString()} tx: ${tx}`)
+        console.log(`Transfering ${loserWalletBalance} from ${loserSelectionPubkey.toString()} to ${winnerSelectionPubkey.toString()} tx: ${tx.signature}`)
+
+        if(tx.error) throw new ServerError(`Err transfering Solana. Tx: ${tx.signature}`);
+
+        await setWinners(wager._id);
 
         // Finally update status
         await Wager.updateOne({ 'selections._id': selectionId }, { '$set': {

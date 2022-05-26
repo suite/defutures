@@ -22,6 +22,7 @@ const CORS_ORIGIN = process.env.ORIGIN as string || 'http://localhost:3000';
 - send out fees to fund wallet 
 
 - might want to think about sending placebet client side until success..
+- heroku logging
 */
 
 const authorization = (req: express.Request, res: express.Response, next: express.NextFunction) => {

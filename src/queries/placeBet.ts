@@ -3,6 +3,7 @@ import { TokenBalanceResult } from "../misc/types";
 import { getTokenBalanceChange } from "./solana";
 import Wager from '../model/wager';
 import { ServerError } from "../misc/serverError";
+import { FEE_MULTIPLIER } from "../config/database";
 
 // do we need publickey? make sure publickey===one in transaction
 export default async function placeBet(wagerId: ObjectId, selectionId: ObjectId, signature: string): Promise<TokenBalanceResult | ServerError> {
@@ -28,9 +29,12 @@ export default async function placeBet(wagerId: ObjectId, selectionId: ObjectId,
 
         // Confirm signature (confirms balance diff, publickey)
         const amountBet = await getTokenBalanceChange(signature, wagerPubkey);
+
         if(amountBet === null) {
             throw new ServerError("Invalid transaction signature");
         }
+
+        const finalBetAmount = amountBet.amount * FEE_MULTIPLIER;
 
         const publicKey = amountBet.userPublicKey;
 
@@ -70,7 +74,7 @@ export default async function placeBet(wagerId: ObjectId, selectionId: ObjectId,
         // Add bet amount (Filter checks for used sig)
         const addedBet = await Wager.updateOne(placedBetsFilter, { 
             $push: { 'placedBets.$.amounts': {
-                amount: amountBet.amount,
+                amount: finalBetAmount,
                 signature
             }}
         })
@@ -80,7 +84,7 @@ export default async function placeBet(wagerId: ObjectId, selectionId: ObjectId,
 
         // Update total spent TODO: Only add if confirmed
         await Wager.updateOne({ _id: wagerId, 'selections._id': selectionId }, { 
-            $inc: { 'selections.$.totalSpent': amountBet.amount }
+            $inc: { 'selections.$.totalSpent': finalBetAmount }
         })
 
         return amountBet;

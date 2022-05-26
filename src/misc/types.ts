@@ -1,4 +1,5 @@
 import { ObjectId } from "mongoose"
+import { ServerError } from "./serverError"
 
 export type WagerSelectionSchema = {
     _id: ObjectId,
@@ -47,4 +48,9 @@ export type WagerWalletSchema = {
     selectionId: ObjectId,
     publicKey: string,
     privateKey: string
+}
+
+export type SplTransferResult = {
+    signature?: string,
+    error?: ServerError | unknown
 }
