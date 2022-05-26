@@ -4,14 +4,11 @@ import Wager from '../model/wager';
 import { ServerError } from "../misc/serverError";
 import { PAYOUT_PRECISION } from "../config/database";
 
-export default async function setWinners(wagerId: ObjectId) {
+export default async function setWinners(winningSelection: ObjectId) {
     try {
-        const wager: WagerSchema | null = await Wager.findOne({ 
-            _id: wagerId, 
-            status: 'completed', 
-            'selections.winner': true }, { 'selections.$': 1 })
+        const wager: WagerSchema | null = await Wager.findOne({'selections._id': winningSelection }, { 'selections.$': 1 })
 
-        if(!wager) throw new ServerError('Could not find completed wager.');
+        if(!wager) throw new ServerError('Could not find winning wager.');
         
         const selection = wager.selections[0];
         const selectionId = selection._id;

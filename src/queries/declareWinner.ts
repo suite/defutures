@@ -43,7 +43,7 @@ export default async function declareWinner(selectionId: ObjectId): Promise<bool
 
         if(tx.error) throw new ServerError(`Err transfering Solana. Tx: ${tx.signature}`);
 
-        await setWinners(wager._id);
+        await setWinners(selectionId);
 
         // Finally update status
         await Wager.updateOne({ 'selections._id': selectionId }, { '$set': {
