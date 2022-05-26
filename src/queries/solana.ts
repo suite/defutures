@@ -72,10 +72,10 @@ export async function getKeypair(secretString: string): Promise<web3.Keypair | n
 
 // TODO: add option for backend to confirm sig? (check block time (confirm timezone))
 export async function getTokenBalanceChange(signature: string, escrowWallet: string): Promise<TokenBalanceResult | null> {
-    const status = await CONNECTION.confirmTransaction(signature, "finalized");
+    // const status = await CONNECTION.confirmTransaction(signature, "finalized");
 
-    // Transaction not confirmed yet
-    if(status.value.err) return null;
+    // // Transaction not confirmed yet
+    // if(status.value.err) return null;
     
     const transactionDetails = await CONNECTION.getParsedTransaction(signature);
 

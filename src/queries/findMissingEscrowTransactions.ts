@@ -39,6 +39,7 @@ export default async function findMissingEscrowTransactions(escrowPublicKey: Pub
         }
         
     } catch (err) {
+        // TODO: might want to retry
         console.log(err)
     }
 }
