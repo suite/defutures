@@ -81,7 +81,7 @@ export async function getTokenBalanceChange(signature: string, escrowWallet: str
 
     if(!transactionDetails 
         || !transactionDetails.meta?.preTokenBalances 
-        || !transactionDetails.meta?.postTokenBalances) return null;
+        || !transactionDetails.meta?.postTokenBalances) return null;    
 
     // Pre token balances
     const preFilteredByMint = transactionDetails.meta.preTokenBalances
