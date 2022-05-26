@@ -76,7 +76,7 @@ export default async function placeBet(wagerId: ObjectId, selectionId: ObjectId,
         })
 
         // If tx sig is invalid and was not added, stop here and do not add to totalSpent
-        if(addedBet.modifiedCount === 0) return new ServerError("Invalid transaction signature");
+        if(addedBet.modifiedCount === 0) return new ServerError("Transaction signature already used");
 
         // Update total spent TODO: Only add if confirmed
         await Wager.updateOne({ _id: wagerId, 'selections._id': selectionId }, { 

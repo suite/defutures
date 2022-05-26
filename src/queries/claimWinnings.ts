@@ -62,7 +62,10 @@ export default async function claimWinnings(wagerId: ObjectId, publicKey: string
         const winnerWalletKeypair = await getKeypair(winnerWallet.privateKey) // make getkeypair throw
         if(!winnerWalletKeypair) throw new ServerError("Could not read losing wallet keys");
 
+        // SET claimed to true, if transaction fails set back to false
+
         const tx = await transferSplToken(winnerWalletKeypair, new PublicKey(publicKey), totalWinnings);
+
         console.log(`Transfering ${totalWinnings} from ${winnerWallet.publicKey} to ${publicKey} tx: ${tx}`)
 
         await Wager.updateOne(placedBetsFilter, { 'placedBets.$.claimed': true });

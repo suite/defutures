@@ -3,8 +3,10 @@ import { TokenBalanceResult } from "../misc/types";
 import crypto from "crypto";
 import * as splToken from "@solana/spl-token";
 import * as web3 from '@solana/web3.js';
+import { ServerError } from "../misc/serverError";
 const bip39 = require('bip39');
 
+// For declare winner, claim winnings
 export async function transferSplToken(fromKeypair: web3.Keypair, toPubkey: web3.PublicKey, amount: number): Promise<web3.TransactionSignature> {
     // Assume escrow has token account created
     const fromTokenAccount = await splToken.getAssociatedTokenAddress(TOKEN_MINT, fromKeypair.publicKey);
@@ -13,7 +15,7 @@ export async function transferSplToken(fromKeypair: web3.Keypair, toPubkey: web3
     const toTokenAccount = await splToken.getOrCreateAssociatedTokenAccount(CONNECTION, FUND_KEYPAIR, TOKEN_MINT, toPubkey);
    
     const signature = await splToken.transfer(
-        CONNECTION,
+         CONNECTION,
         FUND_KEYPAIR,
         fromTokenAccount,
         toTokenAccount.address,
@@ -21,8 +23,14 @@ export async function transferSplToken(fromKeypair: web3.Keypair, toPubkey: web3
         amount * web3.LAMPORTS_PER_SOL,
     )
 
-    await CONNECTION.confirmTransaction(signature)
+    const result = await CONNECTION.confirmTransaction(signature, "finalized");
 
+    // TODO: RETRY  https://stackoverflow.com/questions/71419088/whats-a-better-way-to-handle-timed-out-awaiting-confirmation-on-transaction-e
+    if(result.value.err) {
+        console.log("Transfer spl err " + result.value.err.toString())
+        throw new ServerError("Transfer confirmation spl err");
+    } 
+    
     return signature;
 }
 
@@ -64,6 +72,11 @@ export async function getKeypair(secretString: string): Promise<web3.Keypair | n
 
 // TODO: add option for backend to confirm sig? (check block time (confirm timezone))
 export async function getTokenBalanceChange(signature: string, escrowWallet: string): Promise<TokenBalanceResult | null> {
+    const status = await CONNECTION.confirmTransaction(signature, "finalized");
+
+    // Transaction not confirmed yet
+    if(status.value.err) return null;
+    
     const transactionDetails = await CONNECTION.getParsedTransaction(signature);
 
     if(!transactionDetails 

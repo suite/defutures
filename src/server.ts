@@ -20,6 +20,8 @@ const CORS_ORIGIN = process.env.ORIGIN as string || 'http://localhost:3000';
 - test betting after end date
 -  wtach out for fault pubkey/sig
 - send out fees to fund wallet 
+
+- might want to think about sending placebet client side until success..
 */
 
 const authorization = (req: express.Request, res: express.Response, next: express.NextFunction) => {
