@@ -35,7 +35,7 @@ export default async function findMissingEscrowTransactions(escrowPublicKey: Pub
         
         if(transactions.length >= 1000) {
             // Recall function with options
-            return findMissingEscrowTransactions(escrowPublicKey, transactions[transactions.length - 1].signature)
+            return await findMissingEscrowTransactions(escrowPublicKey, transactions[transactions.length - 1].signature)
         }
         
     } catch (err) {

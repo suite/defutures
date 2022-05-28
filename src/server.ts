@@ -23,6 +23,11 @@ const CORS_ORIGIN = process.env.ORIGIN as string || 'http://localhost:3000';
 
 - might want to think about sending placebet client side until success..
 - heroku logging
+
+- TODO: 
+- airdrop to all winners
+- cancel wager - airdrop back bets
+- somehow log airdrop 
 */
 
 const authorization = (req: express.Request, res: express.Response, next: express.NextFunction) => {
