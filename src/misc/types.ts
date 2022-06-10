@@ -1,3 +1,4 @@
+import { Keypair, PublicKey } from "@solana/web3.js"
 import { ObjectId } from "mongoose"
 import { ServerError } from "./serverError"
 
@@ -16,25 +17,34 @@ export type WagerBetAmountSchema = {
     signature: string
 }
 
+export type WagerTransferData = {
+    _id: ObjectId,
+    amount: number,
+    signature: string,
+    error: number
+}
+
 export type WagerBetSchema = {
     _id: ObjectId,
     publicKey: string,
     amounts: Array<WagerBetAmountSchema>,
     selectionId: ObjectId,
     nickname: string,
-    claimed: boolean
+    winAmount: number,
+    transferData: WagerTransferData
 }
 
 export type WagerSchema = {
     _id: ObjectId,
     title: string,
-    status: 'upcoming' | 'live' | 'closed' | 'completed',
+    status: 'upcoming' | 'live' | 'closed' | 'completed' | 'cancelled',
     selections: Array<WagerSelectionSchema>,
     startDate: number,
     endDate: number,
     gameDate: number,
     placedBets: Array<WagerBetSchema>,
-    publicKey: string
+    publicKey: string,
+    airdropProgress: boolean
 }
 
 export type TokenBalanceResult = {
@@ -52,5 +62,12 @@ export type WagerWalletSchema = {
 
 export type SplTransferResult = {
     signature?: string,
-    error?: ServerError | unknown
+    error?: number
+}
+
+export type AirdropAmount = {
+    amount: number,
+    toPubkey: PublicKey,
+    fromKeypair: Keypair,
+    selectionId: ObjectId
 }

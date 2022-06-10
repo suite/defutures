@@ -11,8 +11,8 @@ import Wager from '../model/wager';
 export const AGENDA = new Agenda({ db: { address: MONGO_URL! } });
 
 export const CONNECTION = new Connection(
-  clusterApiUrl('devnet'),
-  // 'http://localhost:8899', // web3.clusterApiUrl('mainnet-beta'), //devnet
+  // clusterApiUrl('devnet'),
+  'http://localhost:8899', // web3.clusterApiUrl('mainnet-beta'), //devnet
   'confirmed'
 );
 
@@ -29,7 +29,7 @@ export const KEY = process.env.KEY as string;
 
 // const TOKEN_MINT = new web3.PublicKey("DUSTawucrTsGU8hcqRdHDCbuYhCPADMLM2VcCb8VnFnQ");
 // export const TOKEN_MINT = new PublicKey("ELEJMZQ585rAegqfGnu5NfXXZA9hu8SHadw4cpK1QEjy"); localnet
-export const TOKEN_MINT = new PublicKey("AkDWDJ37DqhLN95TL467NFAPixDTq1L6iXLJ1Boqznr1");
+export const TOKEN_MINT = new PublicKey("ELEJMZQ585rAegqfGnu5NfXXZA9hu8SHadw4cpK1QEjy"); // devnet: AkDWDJ37DqhLN95TL467NFAPixDTq1L6iXLJ1Boqznr1
 
 export const connectMongo = async () => {
   // Connecting to the database
@@ -40,7 +40,7 @@ export const connectMongo = async () => {
     await AGENDA.start();
 
     // Checks for live games and searches for missing txs
-    await AGENDA.every("5 minutes", "check transactions");
+    await AGENDA.every("15 minutes", "check transactions");
 
   } catch (err) {
     console.log("database connection failed. exiting now...");

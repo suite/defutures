@@ -1,5 +1,10 @@
-import { PublicKey } from "@solana/web3.js";
+import { Keypair, PublicKey } from "@solana/web3.js";
+import { ObjectId } from "mongoose";
 import Whitelist from "../model/whitelist";
+import { WagerWalletSchema } from "./types";
+import WagerWallet from '../model/wagerWallet';
+import { getKeypair } from "../queries/solana";
+import { ServerError } from "./serverError";
 
 export function isValidPubKey(pubKey: string): boolean {
     try {
@@ -22,4 +27,12 @@ export async function isWhitelisted(publicKey: string): Promise<boolean> {
     } catch(err) {
         return false;
     }
+}
+
+export async function getEscrowWallet(selectionId: ObjectId): Promise<Keypair> {
+    const wallet: WagerWalletSchema | null = await WagerWallet.findOne({ selectionId });
+
+    if(!wallet) throw new ServerError("Could not find wager wallet.");
+
+    return await getKeypair(wallet.privateKey);    
 }

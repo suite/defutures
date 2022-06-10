@@ -4,6 +4,7 @@ import { getTokenBalanceChange } from "./solana";
 import Wager from '../model/wager';
 import { ServerError } from "../misc/serverError";
 import { FEE_MULTIPLIER } from "../config/database";
+import wager from "../model/wager";
 
 // do we need publickey? make sure publickey===one in transaction
 export default async function placeBet(wagerId: ObjectId, selectionId: ObjectId, signature: string): Promise<TokenBalanceResult | ServerError> {
@@ -15,6 +16,8 @@ export default async function placeBet(wagerId: ObjectId, selectionId: ObjectId,
         // if(new Date().getTime() > new Date(wagerData.endDate).getTime()) {
         //     throw 'End date already reached.';
         // }
+
+        if(!wagerData) throw new ServerError("Wager is not available.");
 
         const wagerPubkey = wagerData.selections[0]?.publicKey;
 

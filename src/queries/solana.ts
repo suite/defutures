@@ -29,36 +29,38 @@ export async function transferSplToken(fromKeypair: web3.Keypair, toPubkey: web3
 
         // TODO: RETRY  https://stackoverflow.com/questions/71419088/whats-a-better-way-to-handle-timed-out-awaiting-confirmation-on-transaction-e
         if(result.value.err) {
-            console.log("Transfer spl err " + result.value.err.toString() + " for tx: " + signature)
+            console.log("Transfer spl err " + JSON.stringify(result.value) + " for tx: " + signature)
             
             return {
                 signature,
-                error: new ServerError(result.value.err.toString())
+                error: 1
             }
         }
 
-        return { signature };
+        return { signature, error: -1 };
     } catch (error) {
         return {
             signature,
-            error
+            error: 2
         }
     }
 }
 
-export async function getBalance(publicKey: web3.PublicKey): Promise<number | null> {
+export async function getBalance(publicKey: web3.PublicKey): Promise<number> {
     try {
         const tokenAccount = await splToken.getAssociatedTokenAddress(TOKEN_MINT, publicKey);
         const dustBal = (await CONNECTION.getTokenAccountBalance(tokenAccount)).value.uiAmount;
 
+        if(!dustBal) throw new ServerError("Err fetching bal");
+
         return dustBal;
     } catch (err) {
         console.log(err)
-        return null;
+        throw new ServerError("Err fetching bal");
     }
 }
 
-export async function getKeypair(secretString: string): Promise<web3.Keypair | null> {
+export async function getKeypair(secretString: string): Promise<web3.Keypair> {
     try {
         const [encrypted, iv] = secretString.split("|");
 
@@ -78,7 +80,7 @@ export async function getKeypair(secretString: string): Promise<web3.Keypair | n
         return web3.Keypair.fromSeed(mnemonicSeed);
     } catch(err) {
         console.log(err)
-        return null;
+        throw new ServerError("Error parsing private key.");
     }
 }
 

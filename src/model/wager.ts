@@ -7,9 +7,15 @@ const betAmount = new mongoose.Schema({
     signature: { type: String },
 });
 
-const winAmount = new mongoose.Schema({
+const transferData = new mongoose.Schema({
     amount: { type: Number },
     signature: { type: String },
+    error: { type: Number, default: 0 },
+    // error code 
+    // -1 = success
+    // 0 = not set
+    // 1 = confirm err
+    // 2 = general err
 });
 
 const placedBet = new mongoose.Schema({
@@ -17,7 +23,8 @@ const placedBet = new mongoose.Schema({
     amounts: { type: [betAmount], default: [] },
     selectionId: { type: mongoose.Schema.Types.ObjectId },
     nickname: { type: String, default: "" },
-    winAmount: { type: winAmount, default: { } },
+    winAmount: { type: Number, default: 0 },
+    transferData: { type: transferData }
 });
 
 const wagerSelection = new mongoose.Schema({
@@ -33,7 +40,7 @@ const wagerSchema = new mongoose.Schema({
     title: { type: String },
     status: {
         type: String,
-        enum : ['upcoming', 'live', 'closed', 'completed'],
+        enum : ['upcoming', 'live', 'closed', 'completed', 'cancelled'],
         default: 'upcoming'
     },
     selections: { type: [wagerSelection] },
@@ -41,6 +48,7 @@ const wagerSchema = new mongoose.Schema({
     endDate: { type: Number },
     gameDate: { type: Number },
     placedBets: { type: [placedBet], default: []},
+    airdropProgress: { type: Boolean, default: false }
 });
 
 export default mongoose.model("wager", wagerSchema);
