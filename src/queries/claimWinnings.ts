@@ -1,4 +1,4 @@
-import { ObjectId } from "mongoose";
+import { ObjectId } from "mongodb";
 import { FEE_MULTIPLIER, PAYOUT_PRECISION } from "../config/database";
 import { WagerSchema, WagerWalletSchema } from "../misc/types";
 import { getKeypair, transferSplToken } from "./solana";

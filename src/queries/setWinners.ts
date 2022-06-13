@@ -1,4 +1,4 @@
-import { ObjectId } from "mongoose"
+import { ObjectId } from "mongodb"
 import { WagerBetSchema, WagerSchema } from "../misc/types";
 import Wager from '../model/wager';
 import { ServerError } from "../misc/serverError";
@@ -43,7 +43,7 @@ export default async function setWinners(winningSelection: ObjectId) {
 
             await Wager.updateOne(placedBetsFilter, { 'placedBets.$.winAmount': payout });
         }
-        
+
     } catch (err) {
         console.log(err)
         throw new ServerError("Error setting winners.")

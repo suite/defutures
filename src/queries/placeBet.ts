@@ -1,4 +1,4 @@
-import { ObjectId } from "mongoose";
+import { ObjectId } from "mongodb";
 import { TokenBalanceResult } from "../misc/types";
 import { getTokenBalanceChange } from "./solana";
 import Wager from '../model/wager';

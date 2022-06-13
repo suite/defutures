@@ -3,7 +3,7 @@
 // cancelled -> send back deposits
 
 import { Keypair, PublicKey } from "@solana/web3.js";
-import { ObjectId } from "mongoose";
+import { ObjectId } from "mongodb";
 import { ServerError } from "../misc/serverError";
 import { AirdropAmount, WagerSchema, WagerWalletSchema } from "../misc/types";
 import { getEscrowWallet } from "../misc/utils";
@@ -29,7 +29,7 @@ export default async function airdrop(wagerId: ObjectId) {
             if(!airdropAmounts) throw new ServerError('Could not get airdrop amounts.');
 
             for(const { amount, toPubkey, fromKeypair, selectionId } of airdropAmounts) {
-                console.log(`Airdropping to ${toPubkey.toString()}...` );
+                console.log(`Airdropping ${amount} to ${toPubkey.toString()}...` );
 
                 const { signature, error } = await transferSplToken(fromKeypair, toPubkey, amount);
 

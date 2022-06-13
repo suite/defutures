@@ -1,6 +1,6 @@
 import * as splToken from "@solana/spl-token";
 import * as web3 from '@solana/web3.js';
-import { ObjectId } from "mongoose";
+import { ObjectId } from "mongodb";
 import { WagerSchema } from "../misc/types";
 import crypto from "crypto";
 import WagerWallet from '../model/wagerWallet';

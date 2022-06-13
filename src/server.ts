@@ -28,6 +28,9 @@ const CORS_ORIGIN = process.env.ORIGIN as string || 'http://localhost:3000';
 - airdrop to all winners
 - cancel wager - airdrop back bets
 - somehow log airdrop 
+
+- Log tx's through disc webhook
+- 
 */
 
 const authorization = (req: express.Request, res: express.Response, next: express.NextFunction) => {

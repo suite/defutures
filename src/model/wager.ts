@@ -24,7 +24,7 @@ const placedBet = new mongoose.Schema({
     selectionId: { type: mongoose.Schema.Types.ObjectId },
     nickname: { type: String, default: "" },
     winAmount: { type: Number, default: 0 },
-    transferData: { type: transferData }
+    transferData: { type: transferData, default: { error: 0 } }
 });
 
 const wagerSelection = new mongoose.Schema({

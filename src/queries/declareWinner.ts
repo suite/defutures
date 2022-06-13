@@ -1,4 +1,4 @@
-import { ObjectId } from "mongoose";
+import { ObjectId } from "mongodb";
 import { WagerSchema, WagerWalletSchema } from "../misc/types";
 import { getKeypair, getBalance, transferSplToken } from "./solana";
 import WagerWallet from '../model/wagerWallet';

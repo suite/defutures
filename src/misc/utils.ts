@@ -1,5 +1,5 @@
 import { Keypair, PublicKey } from "@solana/web3.js";
-import { ObjectId } from "mongoose";
+import { ObjectId } from "mongodb";
 import Whitelist from "../model/whitelist";
 import { WagerWalletSchema } from "./types";
 import WagerWallet from '../model/wagerWallet';
@@ -35,4 +35,12 @@ export async function getEscrowWallet(selectionId: ObjectId): Promise<Keypair> {
     if(!wallet) throw new ServerError("Could not find wager wallet.");
 
     return await getKeypair(wallet.privateKey);    
+}
+
+export function getObjectId(id: string): ObjectId | null {
+    try {
+        return new ObjectId(id)
+    } catch (err) {
+        return null;
+    }
 }

@@ -1,5 +1,5 @@
 import { Keypair, PublicKey } from "@solana/web3.js"
-import { ObjectId } from "mongoose"
+import { ObjectId } from "mongodb"
 import { ServerError } from "./serverError"
 
 export type WagerSelectionSchema = {

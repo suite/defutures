@@ -16,13 +16,15 @@ export async function transferSplToken(fromKeypair: web3.Keypair, toPubkey: web3
         // Ensure destination has token acount
         const toTokenAccount = await splToken.getOrCreateAssociatedTokenAccount(CONNECTION, FUND_KEYPAIR, TOKEN_MINT, toPubkey);
 
+        const transferAmount = getTransferAmount(amount)
+
         signature = await splToken.transfer(
             CONNECTION,
             FUND_KEYPAIR,
             fromTokenAccount,
             toTokenAccount.address,
             fromKeypair,
-            amount * web3.LAMPORTS_PER_SOL,
+            transferAmount,
         )
 
         const result = await CONNECTION.confirmTransaction(signature, "finalized");
@@ -39,11 +41,17 @@ export async function transferSplToken(fromKeypair: web3.Keypair, toPubkey: web3
 
         return { signature, error: -1 };
     } catch (error) {
+        console.log(error)
+
         return {
             signature,
             error: 2
         }
     }
+}
+
+function getTransferAmount(amount: number) {
+    return Math.floor(amount * web3.LAMPORTS_PER_SOL)
 }
 
 export async function getBalance(publicKey: web3.PublicKey): Promise<number> {
