@@ -2,7 +2,7 @@ import mongoose, { ObjectId } from "mongoose";
 
 const { MONGO_URL } = process.env;
 import Agenda, { Job } from "agenda";
-import { clusterApiUrl, Connection, Keypair, PublicKey } from "@solana/web3.js";
+import { Connection, Keypair, PublicKey } from "@solana/web3.js";
 import createWagerEscrows from "../queries/createWagerEscrows";
 import { WagerSchema } from "../misc/types";
 import findMissingEscrowTransactions from "../queries/findMissingEscrowTransactions";
@@ -13,9 +13,10 @@ export const LOGTAIL = new Logtail("Mv7iTABrBnrLdVoKkZiabnyG");
 
 export const AGENDA = new Agenda({ db: { address: MONGO_URL! } });
 
+// web3.clusterApiUrl('mainnet-beta'),
+// web3.clusterApiUrl('devnet'),
 export const CONNECTION = new Connection(
-  // clusterApiUrl('devnet'),
-  'http://localhost:8899', // web3.clusterApiUrl('mainnet-beta'), //devnet
+  'http://localhost:8899', 
   'confirmed'
 );
 
@@ -24,15 +25,16 @@ const FUND_SEED = new Uint8Array(FUND_WALLET.split(",").map((e: string) => parse
 export const FUND_KEYPAIR = Keypair.fromSeed(FUND_SEED);
 
 export const PAYOUT_PRECISION = 100;
-export const FEE_MULTIPLIER = 0.99; // 1% off each bet
+export const FEE_MULTIPLIER = 0.98; // 2% off each bet
 
 export const ALGORITHM = "aes-192-cbc";
 export const SALT = process.env.SALT as string;
 export const KEY = process.env.KEY as string;
 
-// const TOKEN_MINT = new web3.PublicKey("DUSTawucrTsGU8hcqRdHDCbuYhCPADMLM2VcCb8VnFnQ");
-// export const TOKEN_MINT = new PublicKey("ELEJMZQ585rAegqfGnu5NfXXZA9hu8SHadw4cpK1QEjy"); localnet
-export const TOKEN_MINT = new PublicKey("ELEJMZQ585rAegqfGnu5NfXXZA9hu8SHadw4cpK1QEjy"); // devnet: AkDWDJ37DqhLN95TL467NFAPixDTq1L6iXLJ1Boqznr1
+// Dust mint: DUSTawucrTsGU8hcqRdHDCbuYhCPADMLM2VcCb8VnFnQ
+// Local net: ELEJMZQ585rAegqfGnu5NfXXZA9hu8SHadw4cpK1QEjy
+// Dev net: AkDWDJ37DqhLN95TL467NFAPixDTq1L6iXLJ1Boqznr1
+export const TOKEN_MINT = new PublicKey("ELEJMZQ585rAegqfGnu5NfXXZA9hu8SHadw4cpK1QEjy");
 
 export const connectMongo = async () => {
   // Connecting to the database

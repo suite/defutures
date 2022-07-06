@@ -2,7 +2,7 @@ import { ObjectId } from "mongodb"
 import { WagerBetSchema, WagerSchema } from "../misc/types";
 import Wager from '../model/wager';
 import { ServerError } from "../misc/serverError";
-import { LOGTAIL, PAYOUT_PRECISION } from "../config/database";
+import { FEE_MULTIPLIER, LOGTAIL, PAYOUT_PRECISION } from "../config/database";
 
 export default async function setWinners(winningSelection: ObjectId) {
     try {
@@ -44,6 +44,8 @@ export default async function setWinners(winningSelection: ObjectId) {
             await Wager.updateOne(placedBetsFilter, { 'placedBets.$.winAmount': payout });
         }
 
+        LOGTAIL.info(`Set ${winningSelection} as winning selection.`)
+
     } catch (err) {
         LOGTAIL.error(`Error setting winners ${err}`)
         throw new ServerError("Error setting winners.")
@@ -56,7 +58,7 @@ function calculateWinnings(userBet: WagerBetSchema, payoutMultiplier: number): n
     const totalUserBetAmount = userBetAmounts.reduce((a, b) => a + b, 0);
 
     // Calculate final winnings
-    let totalWinnings = totalUserBetAmount * payoutMultiplier;
+    let totalWinnings = totalUserBetAmount * payoutMultiplier * FEE_MULTIPLIER;
     totalWinnings = Math.floor(totalWinnings * PAYOUT_PRECISION) / PAYOUT_PRECISION;
 
     return totalWinnings;

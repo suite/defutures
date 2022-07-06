@@ -30,7 +30,7 @@ export default async function placeBet(wagerId: ObjectId, selectionId: ObjectId,
             throw new ServerError("Invalid transaction signature");
         }
 
-        const finalBetAmount = amountBet.amount * FEE_MULTIPLIER;
+        const finalBetAmount = amountBet.amount;
 
         const publicKey = amountBet.userPublicKey;
 
