@@ -1,4 +1,4 @@
-import { ObjectId } from "mongoose";
+import { ObjectId } from "mongodb";
 import { WagerSchema, WagerWalletSchema } from "../misc/types";
 import { getKeypair, getBalance, transferSplToken } from "./solana";
 import WagerWallet from '../model/wagerWallet';
@@ -6,8 +6,9 @@ import Wager from '../model/wager';
 import { PublicKey } from "@solana/web3.js";
 import { ServerError } from "../misc/serverError";
 import setWinners from "./setWinners";
+import { getEscrowWallet } from "../misc/utils";
+import { LOGTAIL } from "../config/database";
 
-// !!!! finish up place bet, cleanup
 export default async function declareWinner(selectionId: ObjectId): Promise<boolean | ServerError> {
     try {
         // Winner already selected or wager still live/upcoming 
@@ -24,24 +25,16 @@ export default async function declareWinner(selectionId: ObjectId): Promise<bool
 
         const loserSelectionPubkey = new PublicKey(losingSelection.publicKey);
         const winnerSelectionPubkey = new PublicKey(winningSelection.publicKey);
-
-        const loserWallet: WagerWalletSchema | null = await WagerWallet.findOne({ selectionId: losingSelection._id })
-        
-        if(!loserWallet) throw new ServerError("Could not find losing selection wallet");
-
-        const loserWalletKeypair = await getKeypair(loserWallet.privateKey) // make getkeypair throw
-
-        if(!loserWalletKeypair) throw new ServerError("Could not read losing wallet keys");
+    
+        const loserWalletKeypair = await getEscrowWallet(losingSelection._id);
 
         const loserWalletBalance = await getBalance(loserSelectionPubkey)
-
-        if(!loserWalletBalance) throw new ServerError("Err fetching bal");
 
         const tx = await transferSplToken(loserWalletKeypair, winnerSelectionPubkey, loserWalletBalance);
 
         console.log(`Transfering ${loserWalletBalance} from ${loserSelectionPubkey.toString()} to ${winnerSelectionPubkey.toString()} tx: ${tx.signature}`)
 
-        if(tx.error) throw new ServerError(`Err transfering Solana. Tx: ${tx.signature}`);
+        if(tx.error !== -1) throw new ServerError(`Err transfering Solana. Tx: ${tx.signature}`);
 
         await setWinners(selectionId);
 
@@ -51,9 +44,12 @@ export default async function declareWinner(selectionId: ObjectId): Promise<bool
             'status': 'completed'
         }})
 
+        LOGTAIL.info(`Delcared selection ${selectionId} as winner`)
+
         return true;
     } catch (err) {
-        console.log(err);
+        LOGTAIL.error(`Error declaring ${selectionId} as winner ${err}`)
+
         if(err instanceof ServerError) return err;
         return new ServerError("Internal error has occured.");
     }

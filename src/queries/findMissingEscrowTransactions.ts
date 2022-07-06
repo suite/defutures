@@ -1,5 +1,5 @@
 import { ConfirmedSignaturesForAddress2Options, PublicKey } from "@solana/web3.js";
-import { TOKEN_MINT, CONNECTION } from "../config/database";
+import { TOKEN_MINT, CONNECTION, LOGTAIL } from "../config/database";
 import { WagerSchema } from "../misc/types";
 import placeBet from "./placeBet";
 import Wager from '../model/wager';
@@ -16,7 +16,7 @@ export default async function findMissingEscrowTransactions(escrowPublicKey: Pub
 
         const transactions = await CONNECTION.getConfirmedSignaturesForAddress2(tokenAccount, options);
             
-        console.log(`Checking for escrow: ${escrowPublicKey.toString()} Num txs: ${transactions.length}`)
+        LOGTAIL.info(`Checking for escrow: ${escrowPublicKey.toString()} Num txs: ${transactions.length}`)
 
         for(const tx of transactions) {
             const dbHasSig = await Wager.findOne({ 'selections.publicKey': escrowPublicKey.toString(), 'placedBets.amounts.signature': tx.signature });
@@ -28,18 +28,19 @@ export default async function findMissingEscrowTransactions(escrowPublicKey: Pub
                 const selectionId = wager.selections[0]._id;
                 const amount = await placeBet(wager._id, selectionId, tx.signature);
                 if(!(amount instanceof ServerError)) {
-                    console.log(`amount recovered: ${amount?.amount} selection ${selectionId}`)
+                    LOGTAIL.info(`amount recovered: ${amount?.amount} selection ${selectionId}`)
                 }
             }
         }
         
         if(transactions.length >= 1000) {
             // Recall function with options
+            LOGTAIL.info(`Over 1000 transactions, continuing search`)
             return await findMissingEscrowTransactions(escrowPublicKey, transactions[transactions.length - 1].signature)
         }
         
     } catch (err) {
-        // TODO: might want to retry
-        console.log(err)
+        LOGTAIL.error(`Error checking missing transactions, retrying... ${err}`)
+        return await findMissingEscrowTransactions(escrowPublicKey, lastTxSignature)
     }
 }

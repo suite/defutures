@@ -1,11 +1,10 @@
 import bs58 from "bs58";
 import express from "express";
 import nacl from "tweetnacl";
-import { isValidPubKey, isWhitelisted } from "../misc/utils";
+import { getObjectId, isValidPubKey, isWhitelisted } from "../misc/utils";
 import Wager from "../model/wager";
 import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
-import claimWinnings from "../queries/claimWinnings";
 import placeBet from "../queries/placeBet";
 import { KEY } from "../config/database";
 import { ServerError } from "../misc/serverError";
@@ -63,7 +62,7 @@ router.post('/login', async (req, res) => {
         res.cookie("access_token", token, {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
-            sameSite: 'none'
+            sameSite: process.env.NODE_ENV === "production" ? 'none' : 'lax'
         }).status(200).json({ verified })
 
     } catch (err) {
@@ -92,35 +91,21 @@ router.get('/wagers', async (req, res) => {
 router.post('/placeBet', async (req, res) => {
     const { wagerId, selectionId, signature } = req.body;
 
-    if (!(wagerId && selectionId && signature)) {
+    const wagerObjectId = getObjectId(wagerId);
+    const selectionObjectId = getObjectId(selectionId);
+
+    if (!(wagerObjectId && selectionObjectId && signature)) {
         res.status(400).send({ message: "Invalid input", data: {} });
         return;
     }
 
-    const result = await placeBet(wagerId, selectionId, signature);
+    const result = await placeBet(wagerObjectId, selectionObjectId, signature);
 
     if(result instanceof ServerError) {
         return res.status(400).json({ message: result.message, data: result }) 
     }
 
     res.status(200).json({ message: "Placed bet", data: result })
-})
-
-router.post('/claim', async (req, res) => {
-    const { wagerId, publicKey } = req.body;
-
-    if (!(wagerId && isValidPubKey(publicKey))) {
-        res.status(400).send({ message: "Invalid input", data: {} });
-        return;
-    }
-
-    const result = await claimWinnings(wagerId, publicKey);
-    
-    if(result instanceof ServerError) {
-        return res.status(400).json({ message: result.message, data: result }) 
-    }
-
-    res.status(200).json({ message: "Claimed winnings", data: result })
 })
 
 export default router;

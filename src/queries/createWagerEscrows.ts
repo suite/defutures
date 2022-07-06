@@ -1,11 +1,11 @@
 import * as splToken from "@solana/spl-token";
 import * as web3 from '@solana/web3.js';
-import { ObjectId } from "mongoose";
+import { ObjectId } from "mongodb";
 import { WagerSchema } from "../misc/types";
 import crypto from "crypto";
 import WagerWallet from '../model/wagerWallet';
 import Wager from '../model/wager';
-import { ALGORITHM, CONNECTION, FUND_KEYPAIR, KEY, SALT, TOKEN_MINT } from "../config/database";
+import { ALGORITHM, CONNECTION, FUND_KEYPAIR, KEY, LOGTAIL, SALT, TOKEN_MINT } from "../config/database";
 const bip39 = require('bip39');
 
 export default async function createWagerEscrows(wager: WagerSchema): Promise<boolean> {
@@ -52,9 +52,12 @@ async function createWagerEscrow(selectionId: ObjectId): Promise<web3.PublicKey 
 
         if(!tokenAccount) throw 'Error creating token account.'
 
+        LOGTAIL.info(`Created wager escrow for selection ${selectionId}`)
+
         return newWallet.publicKey;
     } catch (err) {
-        console.log(err)
+        LOGTAIL.error(`Error creating wager escrow for selection ${selectionId} ${err}`)
+
         return null;
     }
 }

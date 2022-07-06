@@ -1,4 +1,4 @@
-import { AGENDA } from "../config/database";
+import { AGENDA, LOGTAIL } from "../config/database";
 import { WagerSchema } from "../misc/types";
 import createWagerEscrows from "./createWagerEscrows";
 import Wager from '../model/wager';
@@ -60,10 +60,13 @@ export default async function createWager(title: string, selection1: string, sel
             status: 'closed',
             wager
         });
+
+        LOGTAIL.info(`Created wager ${wager._id}`)
         
         return wager;
     } catch (err) {
-        console.log(err);
+        LOGTAIL.error(`Error creating wager ${err}`)
+        
         if(err instanceof ServerError) return err;
         return new ServerError("Internal error has occured.");
     }
