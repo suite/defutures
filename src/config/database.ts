@@ -7,6 +7,9 @@ import createWagerEscrows from "../queries/createWagerEscrows";
 import { WagerSchema } from "../misc/types";
 import findMissingEscrowTransactions from "../queries/findMissingEscrowTransactions";
 import Wager from '../model/wager';
+import { Logtail } from "@logtail/node";
+
+export const LOGTAIL = new Logtail("Mv7iTABrBnrLdVoKkZiabnyG");
 
 export const AGENDA = new Agenda({ db: { address: MONGO_URL! } });
 
@@ -57,6 +60,8 @@ AGENDA.define("update status", async (job: Job) => {
     wager: WagerSchema
   };
 
+  LOGTAIL.info(`Updating pick status ${wagerId} to ${status}`)
+
   if(status === 'live') {
       const status = await createWagerEscrows(wager);
       if(!status) return;
@@ -83,6 +88,8 @@ AGENDA.define("check transactions", async (job: Job) => {
 
   console.log("running check transactions")
   console.log("live wagers", liveWagers.length)
+
+  LOGTAIL.info(`Running check transactions on ${liveWagers.length} live wagers.`)
 
   for(const wager of liveWagers) {
       for(const selection of wager.selections) {

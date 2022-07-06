@@ -30,7 +30,10 @@ const CORS_ORIGIN = process.env.ORIGIN as string || 'http://localhost:3000';
 - somehow log airdrop 
 
 - Log tx's through disc webhook
-- 
+- add message on side/show tiwtter
+
+- TODO: stress test wallet creation
+- LOOK INTO MULTI SIG
 */
 
 const authorization = (req: express.Request, res: express.Response, next: express.NextFunction) => {

@@ -3,19 +3,12 @@ import { TokenBalanceResult } from "../misc/types";
 import { getTokenBalanceChange } from "./solana";
 import Wager from '../model/wager';
 import { ServerError } from "../misc/serverError";
-import { FEE_MULTIPLIER } from "../config/database";
-import wager from "../model/wager";
+import { FEE_MULTIPLIER, LOGTAIL } from "../config/database";
 
-// do we need publickey? make sure publickey===one in transaction
 export default async function placeBet(wagerId: ObjectId, selectionId: ObjectId, signature: string): Promise<TokenBalanceResult | ServerError> {
     try {
         // Ensure wager is live and selection id exists on wager
         const wagerData = await Wager.findOne({ _id: wagerId, status: "live", 'selections._id': selectionId }, {'selections.$': 1, 'endDate': 1})
-
-        // Make sure end date has not passed
-        // if(new Date().getTime() > new Date(wagerData.endDate).getTime()) {
-        //     throw 'End date already reached.';
-        // }
 
         if(!wagerData) throw new ServerError("Wager is not available.");
 
@@ -90,9 +83,11 @@ export default async function placeBet(wagerId: ObjectId, selectionId: ObjectId,
             $inc: { 'selections.$.totalSpent': finalBetAmount }
         })
 
+        LOGTAIL.info(`${publicKey} placed a bet of ${finalBetAmount}`)
+
         return amountBet;
     } catch (err) {
-        console.log(err)
+        LOGTAIL.error(`Error placing bet on wager ${wagerId} ${signature} ${err}`)
 
         if(err instanceof ServerError) return err;
         return new ServerError("Internal error has occured.");

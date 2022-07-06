@@ -2,7 +2,7 @@ import { ObjectId } from "mongodb"
 import { WagerBetSchema, WagerSchema } from "../misc/types";
 import Wager from '../model/wager';
 import { ServerError } from "../misc/serverError";
-import { PAYOUT_PRECISION } from "../config/database";
+import { LOGTAIL, PAYOUT_PRECISION } from "../config/database";
 
 export default async function setWinners(winningSelection: ObjectId) {
     try {
@@ -45,7 +45,7 @@ export default async function setWinners(winningSelection: ObjectId) {
         }
 
     } catch (err) {
-        console.log(err)
+        LOGTAIL.error(`Error setting winners ${err}`)
         throw new ServerError("Error setting winners.")
     }
 } 

@@ -1,4 +1,4 @@
-import { TOKEN_MINT, CONNECTION, FUND_KEYPAIR, KEY, SALT, ALGORITHM } from "../config/database";
+import { TOKEN_MINT, CONNECTION, FUND_KEYPAIR, KEY, SALT, ALGORITHM, LOGTAIL } from "../config/database";
 import { SplTransferResult, TokenBalanceResult } from "../misc/types";
 import crypto from "crypto";
 import * as splToken from "@solana/spl-token";
@@ -6,7 +6,6 @@ import * as web3 from '@solana/web3.js';
 import { ServerError } from "../misc/serverError";
 const bip39 = require('bip39');
 
-// For declare winner, claim winnings
 export async function transferSplToken(fromKeypair: web3.Keypair, toPubkey: web3.PublicKey, amount: number): Promise<SplTransferResult> {
     let signature = undefined;
     try {
@@ -29,15 +28,16 @@ export async function transferSplToken(fromKeypair: web3.Keypair, toPubkey: web3
 
         const result = await CONNECTION.confirmTransaction(signature, "finalized");
 
-        // TODO: RETRY  https://stackoverflow.com/questions/71419088/whats-a-better-way-to-handle-timed-out-awaiting-confirmation-on-transaction-e
         if(result.value.err) {
-            console.log("Transfer spl err " + JSON.stringify(result.value) + " for tx: " + signature)
+            LOGTAIL.error(`Transfer spl err ${JSON.stringify(result.value)} for tx ${signature}`)
             
             return {
                 signature,
                 error: 1
             }
         }
+
+        LOGTAIL.info(`Transferred ${transferAmount} tokens to ${toPubkey.toString()}`)
 
         return { signature, error: -1 };
     } catch (error) {
@@ -63,7 +63,7 @@ export async function getBalance(publicKey: web3.PublicKey): Promise<number> {
 
         return dustBal;
     } catch (err) {
-        console.log(err)
+        LOGTAIL.error(`Error getting balance for ${publicKey.toString()} ${err}`)
         throw new ServerError("Err fetching bal");
     }
 }
@@ -87,67 +87,66 @@ export async function getKeypair(secretString: string): Promise<web3.Keypair> {
     
         return web3.Keypair.fromSeed(mnemonicSeed);
     } catch(err) {
-        console.log(err)
+        LOGTAIL.error(`Error getting keypair ${err}`)
         throw new ServerError("Error parsing private key.");
     }
 }
 
-// TODO: add option for backend to confirm sig? (check block time (confirm timezone))
 export async function getTokenBalanceChange(signature: string, escrowWallet: string): Promise<TokenBalanceResult | null> {
-    // const status = await CONNECTION.confirmTransaction(signature, "finalized");
+    try {
+        const transactionDetails = await CONNECTION.getParsedTransaction(signature);
 
-    // // Transaction not confirmed yet
-    // if(status.value.err) return null;
-    
-    const transactionDetails = await CONNECTION.getParsedTransaction(signature);
+        if(!transactionDetails 
+            || !transactionDetails.meta?.preTokenBalances 
+            || !transactionDetails.meta?.postTokenBalances) return null;    
 
-    if(!transactionDetails 
-        || !transactionDetails.meta?.preTokenBalances 
-        || !transactionDetails.meta?.postTokenBalances) return null;    
+        // Pre token balances
+        const preFilteredByMint = transactionDetails.meta.preTokenBalances
+            .filter(bal => bal.mint === TOKEN_MINT.toString());
 
-    // Pre token balances
-    const preFilteredByMint = transactionDetails.meta.preTokenBalances
-        .filter(bal => bal.mint === TOKEN_MINT.toString());
+        const preTokenBalancesUser = preFilteredByMint.filter(bal => bal.owner !== escrowWallet);
+        const preTokenBalancesEscrow = preFilteredByMint.filter(bal => bal.owner === escrowWallet);
 
-    const preTokenBalancesUser = preFilteredByMint.filter(bal => bal.owner !== escrowWallet);
-    const preTokenBalancesEscrow = preFilteredByMint.filter(bal => bal.owner === escrowWallet);
+        // Post token balances
+        const postFilteredByMint = transactionDetails.meta.postTokenBalances
+            .filter(bal => bal.mint === TOKEN_MINT.toString());
+        
+        const postTokenBalancesUser = postFilteredByMint.filter(bal => bal.owner !== escrowWallet);
+        const postTokenBalancesEscrow = postFilteredByMint.filter(bal => bal.owner === escrowWallet);
+        
+        // Not a DUST transaction
+        if(preTokenBalancesUser.length === 0 
+            || postTokenBalancesUser.length === 0 
+            || postTokenBalancesEscrow.length === 0) return null;
 
-    // Post token balances
-    const postFilteredByMint = transactionDetails.meta.postTokenBalances
-        .filter(bal => bal.mint === TOKEN_MINT.toString());
-    
-    const postTokenBalancesUser = postFilteredByMint.filter(bal => bal.owner !== escrowWallet);
-    const postTokenBalancesEscrow = postFilteredByMint.filter(bal => bal.owner === escrowWallet);
-    
-    // Not a DUST transaction
-    if(preTokenBalancesUser.length === 0 
-        || postTokenBalancesUser.length === 0 
-        || postTokenBalancesEscrow.length === 0) return null;
+        // Somehow different owners
+        if(preTokenBalancesUser[0].owner !== postTokenBalancesUser[0].owner) {
+            return null;
+        }
 
-    // Somehow different owners
-    if(preTokenBalancesUser[0].owner !== postTokenBalancesUser[0].owner) {
+        const userPublicKey = preTokenBalancesUser[0].owner;
+
+        if(!userPublicKey) return null;
+
+        const preTokenAmountUser = preTokenBalancesUser[0].uiTokenAmount.uiAmount || 0;
+        const postTokenAmountUser = postTokenBalancesUser[0].uiTokenAmount.uiAmount || 0;
+
+        const preTokenAmountEscrow = preTokenBalancesEscrow[0]?.uiTokenAmount.uiAmount || 0;
+        const postTokenAmountEscrow = postTokenBalancesEscrow[0].uiTokenAmount.uiAmount || 0;
+
+        // const netUser = postTokenAmountUser - preTokenAmountUser;
+        const netEscrow = postTokenAmountEscrow - preTokenAmountEscrow;
+
+        // TODO: Might be able to fix
+        const timestamp = transactionDetails.blockTime ? new Date(transactionDetails.blockTime * 1000) : undefined;
+
+        return {
+            amount: netEscrow,
+            timestamp,
+            userPublicKey
+        };
+    } catch (err) {
+        LOGTAIL.error(`Error getting token balance change ${err}`)
         return null;
     }
-
-    const userPublicKey = preTokenBalancesUser[0].owner;
-
-    if(!userPublicKey) return null;
-
-    const preTokenAmountUser = preTokenBalancesUser[0].uiTokenAmount.uiAmount || 0;
-    const postTokenAmountUser = postTokenBalancesUser[0].uiTokenAmount.uiAmount || 0;
-
-    const preTokenAmountEscrow = preTokenBalancesEscrow[0]?.uiTokenAmount.uiAmount || 0;
-    const postTokenAmountEscrow = postTokenBalancesEscrow[0].uiTokenAmount.uiAmount || 0;
-
-    // const netUser = postTokenAmountUser - preTokenAmountUser;
-    const netEscrow = postTokenAmountEscrow - preTokenAmountEscrow;
-
-    // TODO: Might be able to fix
-    const timestamp = transactionDetails.blockTime ? new Date(transactionDetails.blockTime * 1000) : undefined;
-
-    return {
-        amount: netEscrow,
-        timestamp,
-        userPublicKey
-    };
 }

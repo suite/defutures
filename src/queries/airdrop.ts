@@ -11,6 +11,7 @@ import Wager from '../model/wager';
 import WagerWallet from '../model/wagerWallet';
 import { transferSplToken } from "./solana";
 import AsyncLock from 'async-lock';
+import { LOGTAIL } from "../config/database";
 
 const lock = new AsyncLock();
 
@@ -29,11 +30,11 @@ export default async function airdrop(wagerId: ObjectId) {
             if(!airdropAmounts) throw new ServerError('Could not get airdrop amounts.');
 
             for(const { amount, toPubkey, fromKeypair, selectionId } of airdropAmounts) {
-                console.log(`Airdropping ${amount} to ${toPubkey.toString()}...` );
+                LOGTAIL.info(`Airdropping ${amount} to ${toPubkey.toString()}.`);
 
                 const { signature, error } = await transferSplToken(fromKeypair, toPubkey, amount);
 
-                console.log(`Result: sig: ${signature} Err: ${error}`);
+                LOGTAIL.info(`Result: sig: ${signature} Err: ${error}`);
 
                 const placedBetsFilter = {
                     placedBets: {
@@ -55,7 +56,7 @@ export default async function airdrop(wagerId: ObjectId) {
 
             done();
         } catch (err) {
-            console.log(err);
+            LOGTAIL.error(`Error airdropping ${err}`)
 
             if(err instanceof ServerError) return done(err);
             return done(new ServerError("Internal error has occured."));
@@ -106,8 +107,6 @@ async function getAirdropAmounts(wager: WagerSchema): Promise<Array<AirdropAmoun
 
         wagerEscrows[JSON.stringify(selection._id)] = escrowKeypair;
     }
-
-    // TODO:  placedBet.transferData.error may not be set yet... double check and verify xd lol !!! HERE        
 
     for(const placedBet of wager.placedBets) {
          // Ensure transfer has not ran

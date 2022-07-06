@@ -5,7 +5,6 @@ import { getObjectId, isValidPubKey, isWhitelisted } from "../misc/utils";
 import Wager from "../model/wager";
 import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
-import claimWinnings from "../queries/claimWinnings";
 import placeBet from "../queries/placeBet";
 import { KEY } from "../config/database";
 import { ServerError } from "../misc/serverError";
@@ -107,25 +106,6 @@ router.post('/placeBet', async (req, res) => {
     }
 
     res.status(200).json({ message: "Placed bet", data: result })
-})
-
-router.post('/claim', async (req, res) => {
-    const { wagerId, publicKey } = req.body;
-
-    const wagerObjectId = getObjectId(wagerId);
-
-    if (!(wagerObjectId && isValidPubKey(publicKey))) {
-        res.status(400).send({ message: "Invalid input", data: {} });
-        return;
-    }
-
-    const result = await claimWinnings(wagerObjectId, publicKey);
-    
-    if(result instanceof ServerError) {
-        return res.status(400).json({ message: result.message, data: result }) 
-    }
-
-    res.status(200).json({ message: "Claimed winnings", data: result })
 })
 
 export default router;

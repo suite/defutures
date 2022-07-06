@@ -69,6 +69,7 @@ router.post('/airdrop', async (req, res) => {
         return;
     }
 
+    // TODO: Double check async lock works
     airdrop(wagerObjectId);
 
     res.status(200).json({ message: "Initiated airdrop", data: {} })

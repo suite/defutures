@@ -7,8 +7,8 @@ import { PublicKey } from "@solana/web3.js";
 import { ServerError } from "../misc/serverError";
 import setWinners from "./setWinners";
 import { getEscrowWallet } from "../misc/utils";
+import { LOGTAIL } from "../config/database";
 
-// !!!! finish up place bet, cleanup
 export default async function declareWinner(selectionId: ObjectId): Promise<boolean | ServerError> {
     try {
         // Winner already selected or wager still live/upcoming 
@@ -44,9 +44,12 @@ export default async function declareWinner(selectionId: ObjectId): Promise<bool
             'status': 'completed'
         }})
 
+        LOGTAIL.info(`Delcared selection ${selectionId} as winner`)
+
         return true;
     } catch (err) {
-        console.log(err);
+        LOGTAIL.error(`Error declaring ${selectionId} as winner ${err}`)
+
         if(err instanceof ServerError) return err;
         return new ServerError("Internal error has occured.");
     }
