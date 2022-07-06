@@ -2,21 +2,20 @@ import mongoose, { ObjectId } from "mongoose";
 
 const { MONGO_URL } = process.env;
 import Agenda, { Job } from "agenda";
-import { Connection, Keypair, PublicKey } from "@solana/web3.js";
+import { Connection, Keypair, PublicKey, clusterApiUrl } from "@solana/web3.js";
 import createWagerEscrows from "../queries/createWagerEscrows";
 import { WagerSchema } from "../misc/types";
 import findMissingEscrowTransactions from "../queries/findMissingEscrowTransactions";
 import Wager from '../model/wager';
 import { Logtail } from "@logtail/node";
 
+export const IS_DEV = process.env.HEROKU ? true : false;
 export const LOGTAIL = new Logtail("Mv7iTABrBnrLdVoKkZiabnyG");
 
 export const AGENDA = new Agenda({ db: { address: MONGO_URL! } });
 
-// web3.clusterApiUrl('mainnet-beta'),
-// web3.clusterApiUrl('devnet'),
 export const CONNECTION = new Connection(
-  'http://localhost:8899', 
+  IS_DEV ? 'http://localhost:8899' : clusterApiUrl('devnet'), 
   'confirmed'
 );
 
@@ -32,9 +31,8 @@ export const SALT = process.env.SALT as string;
 export const KEY = process.env.KEY as string;
 
 // Dust mint: DUSTawucrTsGU8hcqRdHDCbuYhCPADMLM2VcCb8VnFnQ
-// Local net: ELEJMZQ585rAegqfGnu5NfXXZA9hu8SHadw4cpK1QEjy
-// Dev net: AkDWDJ37DqhLN95TL467NFAPixDTq1L6iXLJ1Boqznr1
-export const TOKEN_MINT = new PublicKey("ELEJMZQ585rAegqfGnu5NfXXZA9hu8SHadw4cpK1QEjy");
+export const TOKEN_MINT = IS_DEV ? new PublicKey("ELEJMZQ585rAegqfGnu5NfXXZA9hu8SHadw4cpK1QEjy") 
+                                 : new PublicKey("AkDWDJ37DqhLN95TL467NFAPixDTq1L6iXLJ1Boqznr1");
 
 export const connectMongo = async () => {
   // Connecting to the database
