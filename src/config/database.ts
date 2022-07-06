@@ -9,7 +9,7 @@ import findMissingEscrowTransactions from "../queries/findMissingEscrowTransacti
 import Wager from '../model/wager';
 import { Logtail } from "@logtail/node";
 
-export const IS_DEV = process.env.HEROKU ? true : false;
+export const IS_DEV = process.env.HEROKU ? false : true;
 export const LOGTAIL = new Logtail("Mv7iTABrBnrLdVoKkZiabnyG");
 
 export const AGENDA = new Agenda({ db: { address: MONGO_URL! } });
