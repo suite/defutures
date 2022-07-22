@@ -9,6 +9,8 @@ export type WagerSelectionSchema = {
     totalSpent: number,
     winner: boolean,
     publicKey: string,
+    imageUrl: string,
+    winnerImageUrl: string
 }
 
 export type WagerBetAmountSchema = {

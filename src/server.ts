@@ -34,6 +34,8 @@ const CORS_ORIGIN = process.env.ORIGIN as string || 'http://localhost:3000';
 
 - TODO: stress test wallet creation
 - LOOK INTO MULTI SIG
+
+- Handle 0 bets on either side
 */
 
 const authorization = (req: express.Request, res: express.Response, next: express.NextFunction) => {
@@ -54,7 +56,7 @@ const authorization = (req: express.Request, res: express.Response, next: expres
 (async () => {
     await connectMongo();
 
-    const corsOpts = { credentials: true, origin: CORS_ORIGIN }
+    const corsOpts = { credentials: true, origin: [...CORS_ORIGIN.split(',')] }
 
     console.log("Cors opts:", corsOpts)
 

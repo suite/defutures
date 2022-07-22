@@ -32,7 +32,9 @@ const wagerSelection = new mongoose.Schema({
     totalUsers: { type: Number, default: 0 },
     totalSpent: { type: Number, default: 0 },
     winner: { type: Boolean, default: false },  
-    publicKey: { type: String, default: '' }
+    publicKey: { type: String, default: '' },
+    imageUrl: { type: String },
+    winnerImageUrl: { type: String }
 });
 
 // TODO: maybe add createdby (pubkey) to keep track..
@@ -48,7 +50,8 @@ const wagerSchema = new mongoose.Schema({
     endDate: { type: Number },
     gameDate: { type: Number },
     placedBets: { type: [placedBet], default: []},
-    airdropProgress: { type: Boolean, default: false }
+    airdropProgress: { type: Boolean, default: false },
+    metadata: { type: [] }
 });
 
 export default mongoose.model("wager", wagerSchema);

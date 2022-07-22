@@ -9,7 +9,16 @@ export function getUTCTime(date: Date): number {
     date.getUTCHours(), date.getUTCMinutes(), date.getUTCSeconds());
 }
 
-export default async function createWager(title: string, selection1: string, selection2: string, startDate: number, endDate: number, gameDate: number): Promise<WagerSchema | ServerError> {
+export default async function createWager(title: string, 
+    selection1: string, 
+    selection1img: string, 
+    selection1winnerImg: string, 
+    selection2: string, 
+    selection2img: string, 
+    selection2winnerImg: string, 
+    startDate: number, 
+    endDate: number, gameDate: number): Promise<WagerSchema | ServerError> {
+        
     try {
         const currentTime = new Date().getTime()
 
@@ -18,10 +27,14 @@ export default async function createWager(title: string, selection1: string, sel
             status: "upcoming",
             selections: [
                 {
-                    title: selection1
+                    title: selection1,
+                    imageUrl: selection1img,
+                    winnerImageUrl: selection1winnerImg
                 },
                 {
-                    title: selection2
+                    title: selection2,
+                    imageUrl: selection2img,
+                    winnerImageUrl: selection2winnerImg
                 }
             ],
             startDate,

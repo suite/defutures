@@ -59,7 +59,7 @@ export async function getBalance(publicKey: web3.PublicKey): Promise<number> {
         const tokenAccount = await splToken.getAssociatedTokenAddress(TOKEN_MINT, publicKey);
         const dustBal = (await CONNECTION.getTokenAccountBalance(tokenAccount)).value.uiAmount;
 
-        if(!dustBal) throw new ServerError("Err fetching bal");
+        if(dustBal === null) throw new ServerError("Err fetching bal");
 
         return dustBal;
     } catch (err) {

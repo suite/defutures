@@ -15,16 +15,34 @@ router.get("/status", (req, res) => {
 })
 
 router.post('/createWager', async (req, res) => {
-    const { title, selection1, selection2, startDate, endDate, gameDate } = req.body;
+    const { title, 
+        selection1, 
+        selection1img, 
+        selection1winnerImg, 
+        selection2, 
+        selection2img, 
+        selection2winnerImg, 
+        startDate, 
+        endDate, gameDate } = req.body;
 
-    if (!(title && selection1 && selection2 && startDate && endDate && gameDate) || 
+    if (!(title && selection1 && selection2 && selection1img && selection1winnerImg
+         && selection2img && selection2winnerImg && startDate && endDate && gameDate) || 
         new Date(startDate) > new Date(endDate)) // Ensures end date > start date
         {
             res.status(400).send({ message: "Invalid input", data: {} });
             return;
     }
   
-    const result = await createWager(title, selection1, selection2, startDate, endDate, gameDate);
+    const result = await createWager(title, 
+        selection1, 
+        selection1img, 
+        selection1winnerImg, 
+        selection2, 
+        selection2img, 
+        selection2winnerImg, 
+        startDate, 
+        endDate, 
+        gameDate);
 
     if(result instanceof ServerError) {
         return res.status(400).json({ message: result.message, data: result }) 
@@ -69,7 +87,6 @@ router.post('/airdrop', async (req, res) => {
         return;
     }
 
-    // TODO: Double check async lock works
     airdrop(wagerObjectId);
 
     res.status(200).json({ message: "Initiated airdrop", data: {} })
