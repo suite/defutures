@@ -3,6 +3,7 @@ import { LOGTAIL } from "../config/database";
 import { ServerError } from "../misc/serverError";
 import Wager from '../model/wager';
 
+// TODO: specify seleciton id / fetch all of them / findOne -> Find
 export default async function getUserWager(wagerId: ObjectId, publicKey: string) {
     try {
         const wagerData = await Wager.findOne({ _id: wagerId, 'placedBets.publicKey': publicKey }, { 'placedBets.$': 1 })
