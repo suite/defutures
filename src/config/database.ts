@@ -31,8 +31,7 @@ export const SALT = process.env.SALT as string;
 export const KEY = process.env.KEY as string;
 
 // Dust mint: DUSTawucrTsGU8hcqRdHDCbuYhCPADMLM2VcCb8VnFnQ
-export const TOKEN_MINT = IS_DEV ? new PublicKey("ELEJMZQ585rAegqfGnu5NfXXZA9hu8SHadw4cpK1QEjy") 
-                                 : new PublicKey("AkDWDJ37DqhLN95TL467NFAPixDTq1L6iXLJ1Boqznr1");
+export const TOKEN_MINT = new PublicKey(process.env.TOKEN_MINT as string)
 
 export const connectMongo = async () => {
   // Connecting to the database
