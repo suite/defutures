@@ -8,6 +8,7 @@ import jwt from 'jsonwebtoken';
 import placeBet from "../queries/placeBet";
 import { KEY } from "../config/database";
 import { ServerError } from "../misc/serverError";
+import getUserWager from "../queries/getUserWager";
 
 const router = express.Router();
 
@@ -106,6 +107,25 @@ router.post('/placeBet', async (req, res) => {
     }
 
     res.status(200).json({ message: "Placed bet", data: result })
+})
+
+router.post('/getUserWager', async (req, res) => {
+    const { wagerId, publicKey } = req.body;
+
+    const wagerObjectId = getObjectId(wagerId);
+
+    if (!(wagerObjectId && isValidPubKey(publicKey))) {
+        res.status(400).send({ message: "Invalid input", data: {} });
+        return;
+    }
+
+    const result = await getUserWager(wagerObjectId, publicKey);
+
+    if(result instanceof ServerError) {
+        return res.status(400).json({ message: result.message, data: result }) 
+    }
+
+    res.status(200).json({ message: "Fetched user wager", data: result })
 })
 
 export default router;
