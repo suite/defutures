@@ -15,12 +15,33 @@ export default async function setWinners(winningSelection: ObjectId) {
 
         if(!(selection && selectionId)) throw new ServerError("No wager/selection found");
 
-        const userBets: WagerSchema | null = await Wager.findOne({ 'placedBets.selectionId': selectionId }, { 'placedBets.$': 1, 'selections': 1 })
+        const wagerSelections: WagerSchema | null = await Wager.findOne({ 'placedBets.selectionId': selectionId }, { 'placedBets.$': 1, 'selections': 1 })
 
-        if(!userBets) throw new ServerError('Could not find completed user bets.');
+        const userBets = await Wager.aggregate([
+            {
+                $match: {
+                    placedBets: {
+                        $elemMatch: {
+                            selectionId
+                        }
+                    }
+                }
+            },
+            {
+                $unwind: '$placedBets'
+            },
+            {
+                $match: { 'placedBets.selectionId': selectionId },
+            },
+            {
+                $replaceRoot: {  newRoot: "$placedBets"  }
+            }
+        ])
+
+        if(!(userBets && wagerSelections)) throw new ServerError('Could not find completed user bets.');
 
         // Determine total volume across all selections
-        const wagerBetAmounts = userBets.selections.map((selection) => selection.totalSpent);
+        const wagerBetAmounts = wagerSelections.selections.map((selection) => selection.totalSpent);
         const totalWagerVolume = wagerBetAmounts.reduce((a, b) => a + b, 0);
 
         // Get winning selection volume
@@ -29,7 +50,7 @@ export default async function setWinners(winningSelection: ObjectId) {
         // Calculate payout odds
         let payoutMultiplier = totalWagerVolume / winningSelectionVolume;
  
-        for(const placedBet of userBets.placedBets) {
+        for(const placedBet of userBets) {
             const payout = calculateWinnings(placedBet, payoutMultiplier)
 
             const placedBetsFilter = {

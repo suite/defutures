@@ -77,12 +77,32 @@ async function getAirdropAmounts(wager: WagerSchema): Promise<Array<AirdropAmoun
 
         const winningSelectionId = completedWager.selections[0]._id;
 
-        const winningBets: WagerSchema | null = await Wager.findOne({ 'placedBets.selectionId': winningSelectionId }, 'placedBets.$');
+        const winningBets = await Wager.aggregate([
+            {
+                $match: {
+                    placedBets: {
+                        $elemMatch: {
+                            selectionId: winningSelectionId
+                        }
+                    }
+                }
+            },
+            {
+                $unwind: '$placedBets'
+            },
+            {
+                $match: { 'placedBets.selectionId': winningSelectionId },
+            },
+            {
+                $replaceRoot: {  newRoot: "$placedBets"  }
+            }
+        ])
+
         const winningWallet: Keypair | null = await getEscrowWallet(winningSelectionId);
 
         if(!(winningBets && winningWallet)) return null;
 
-        for(const placedBet of winningBets.placedBets) {
+        for(const placedBet of winningBets) {
             // Ensure transfer has not ran
             if(placedBet.transferData?.error !== 0) continue;
 
