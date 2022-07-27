@@ -15,7 +15,7 @@ export const LOGTAIL = new Logtail("Mv7iTABrBnrLdVoKkZiabnyG");
 export const AGENDA = new Agenda({ db: { address: MONGO_URL! } });
 
 export const CONNECTION = new Connection(
-  IS_DEV ? 'http://localhost:8899' : clusterApiUrl('devnet'), 
+  clusterApiUrl('devnet'),//IS_DEV ? 'http://localhost:8899' : clusterApiUrl('devnet'), 
   'confirmed'
 );
 

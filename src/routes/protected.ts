@@ -19,14 +19,16 @@ router.post('/createWager', async (req, res) => {
         selection1, 
         selection1img, 
         selection1winnerImg, 
+        selection1nftImg,
         selection2, 
         selection2img, 
         selection2winnerImg, 
+        selection2nftImg,
         startDate, 
         endDate, gameDate } = req.body;
 
-    if (!(title && selection1 && selection2 && selection1img && selection1winnerImg
-         && selection2img && selection2winnerImg && startDate && endDate && gameDate) || 
+    if (!(title && selection1 && selection2 && selection1img && selection1winnerImg && selection1nftImg
+         && selection2img && selection2winnerImg && selection2nftImg && startDate && endDate && gameDate) || 
         new Date(startDate) > new Date(endDate)) // Ensures end date > start date
         {
             res.status(400).send({ message: "Invalid input", data: {} });
@@ -37,9 +39,11 @@ router.post('/createWager', async (req, res) => {
         selection1, 
         selection1img, 
         selection1winnerImg, 
+        selection1nftImg,
         selection2, 
         selection2img, 
         selection2winnerImg, 
+        selection2nftImg,
         startDate, 
         endDate, 
         gameDate);

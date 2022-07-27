@@ -34,7 +34,8 @@ const wagerSelection = new mongoose.Schema({
     winner: { type: Boolean, default: false },  
     publicKey: { type: String, default: '' },
     imageUrl: { type: String },
-    winnerImageUrl: { type: String }
+    winnerImageUrl: { type: String },
+    nftImageUrl: { type: String }
 });
 
 // TODO: maybe add createdby (pubkey) to keep track..

@@ -10,7 +10,8 @@ export type WagerSelectionSchema = {
     winner: boolean,
     publicKey: string,
     imageUrl: string,
-    winnerImageUrl: string
+    winnerImageUrl: string,
+    nftImageUrl: string
 }
 
 export type WagerBetAmountSchema = {

@@ -38,6 +38,15 @@ const CORS_ORIGIN = process.env.ORIGIN as string || 'http://localhost:3000';
 - Handle 0 bets on either side
 - Check .$, (only returns first matching element) (airdrop, setwinners) (placedBets.$)
 - promise all setWinners
+
+- do mainnet test before setting up
+- test cancel
+- airdrop need retry?
+- add nippies metadata, add winner image
+- live in reward pool check game status
+- refresh game data
+- websockets?
+- make sure fund wallet working main net
 */
 
 const authorization = (req: express.Request, res: express.Response, next: express.NextFunction) => {

@@ -8,6 +8,7 @@ import { ServerError } from "../misc/serverError";
 import setWinners from "./setWinners";
 import { getEscrowWallet } from "../misc/utils";
 import { LOGTAIL } from "../config/database";
+import setLosers from "./setLosers";
 
 export default async function declareWinner(selectionId: ObjectId): Promise<boolean | ServerError> {
     try {
@@ -37,6 +38,7 @@ export default async function declareWinner(selectionId: ObjectId): Promise<bool
         if(tx.error !== -1) throw new ServerError(`Err transfering Solana. Tx: ${tx.signature}`);
 
         await setWinners(selectionId);
+        await setLosers(losingSelection._id)
 
         // Finally update status
         await Wager.updateOne({ 'selections._id': selectionId }, { '$set': {
