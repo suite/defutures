@@ -26,7 +26,7 @@ export async function transferSplToken(fromKeypair: web3.Keypair, toPubkey: web3
             transferAmount,
         )
 
-        const result = await CONNECTION.confirmTransaction(signature, "finalized");
+        const result = await CONNECTION.confirmTransaction(signature, "confirmed");
 
         if(result.value.err) {
             LOGTAIL.error(`Transfer spl err ${JSON.stringify(result.value)} for tx ${signature}`)
