@@ -2,7 +2,7 @@ import mongoose, { ObjectId } from "mongoose";
 
 const { MONGO_URL } = process.env;
 import Agenda, { Job } from "agenda";
-import { Connection, Keypair, PublicKey, clusterApiUrl } from "@solana/web3.js";
+import { Connection, Keypair, PublicKey, clusterApiUrl, Cluster } from "@solana/web3.js";
 import createWagerEscrows from "../queries/createWagerEscrows";
 import { WagerSchema } from "../misc/types";
 import findMissingEscrowTransactions from "../queries/findMissingEscrowTransactions";
@@ -14,8 +14,9 @@ export const LOGTAIL = new Logtail("Mv7iTABrBnrLdVoKkZiabnyG");
 
 export const AGENDA = new Agenda({ db: { address: MONGO_URL! } });
 
+const CLUSTER = process.env.CLUSTER as Cluster || 'devnet';
 export const CONNECTION = new Connection(
-  clusterApiUrl('devnet'),//IS_DEV ? 'http://localhost:8899' : clusterApiUrl('devnet'), 
+  clusterApiUrl(CLUSTER),
   'confirmed'
 );
 
@@ -24,7 +25,7 @@ const FUND_SEED = new Uint8Array(FUND_WALLET.split(",").map((e: string) => parse
 export const FUND_KEYPAIR = Keypair.fromSeed(FUND_SEED);
 
 export const PAYOUT_PRECISION = 100;
-export const FEE_MULTIPLIER = 0.98; // 2% off each bet
+export const FEE_MULTIPLIER = 0.9667; // 3.33% off each bet
 
 export const ALGORITHM = "aes-192-cbc";
 export const SALT = process.env.SALT as string;
