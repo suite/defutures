@@ -33,7 +33,7 @@ export default async function declareWinner(selectionId: ObjectId): Promise<bool
 
         const tx = await transferSplToken(loserWalletKeypair, winnerSelectionPubkey, loserWalletBalance);
 
-        console.log(`Transfering ${loserWalletBalance} from ${loserSelectionPubkey.toString()} to ${winnerSelectionPubkey.toString()} tx: ${tx.signature}`)
+        LOGTAIL.info(`Transfering ${loserWalletBalance} from ${loserSelectionPubkey.toString()} to ${winnerSelectionPubkey.toString()} tx: ${tx.signature}`)
 
         if(tx.error !== -1) throw new ServerError(`Err transfering Solana. Tx: ${tx.signature}`);
 
