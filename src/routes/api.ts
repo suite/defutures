@@ -9,6 +9,7 @@ import placeBet from "../queries/placeBet";
 import { KEY } from "../config/database";
 import { ServerError } from "../misc/serverError";
 import getUserWager from "../queries/getUserWager";
+import { WagerSchema } from "../misc/types";
 
 const router = express.Router();
 
@@ -73,7 +74,7 @@ router.post('/login', async (req, res) => {
 
 router.get('/wagers', async (req, res) => {
     try {
-        const wagers = await Wager.find({}, { 
+        const wagers: Array<WagerSchema> = await Wager.find({}, { 
             title: 1,
             status: 1,
             selections: 1,
@@ -82,6 +83,9 @@ router.get('/wagers', async (req, res) => {
             gameDate: 1,
             _id: 1
          })
+
+        wagers.filter(wager => wager.status !== 'live')
+                                    .map(wager => wager.selections.map(sel => sel.publicKey = ''))
         
         res.status(200).json(wagers)
     } catch (err) {

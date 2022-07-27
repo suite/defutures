@@ -49,14 +49,10 @@ const CORS_ORIGIN = process.env.ORIGIN as string || 'http://localhost:3000';
 
 
 
-- implement game timers from backend
-
-- verify gameData is alright
-
+- implement game timers from backend - DONE
+- verify gameData is alright - FINE
 try catch around fetch -> websockets - DONE
-
 finished airdrop message - DONE
-
 send feeeees! - DONE
 
 

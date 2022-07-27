@@ -62,11 +62,6 @@ AGENDA.define("update status", async (job: Job) => {
 
   LOGTAIL.info(`Updating pick status ${wagerId} to ${status}`)
 
-  if(status === 'live') {
-      const status = await createWagerEscrows(wager);
-      if(!status) return;
-  }
-
   // Final check for missing txs before closing 
   if(status === 'closed') {
       const updatedWager: WagerSchema | null = await Wager.findById(wager._id);

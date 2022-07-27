@@ -48,18 +48,15 @@ export default async function createWager(title: string,
 
         const wager: WagerSchema = await Wager.create(wagerOptions)
 
-        if(startDate < currentTime) {
-            // Create escrow wallet for the wager
-            const createdEscrows = await createWagerEscrows(wager);
-            if(!createdEscrows) {
-                // Delete wager if error
-                await Wager.findByIdAndDelete(wager._id);
+        // Create escrow wallet for the wager
+        const createdEscrows = await createWagerEscrows(wager);
+        if(!createdEscrows) {
+            // Delete wager if error
+            await Wager.findByIdAndDelete(wager._id);
 
-                throw new ServerError("Error creating wager wallet.");
-            }
-
-            await Wager.findByIdAndUpdate(wager._id, { status: 'live' })
+            throw new ServerError("Error creating wager wallet.");
         }
+
 
         // Schedule status' NOTE: Max agenda concurrency 20, keep in mind.
         // Schedule for future games
