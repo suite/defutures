@@ -54,6 +54,8 @@ export default async function airdrop(wagerId: ObjectId) {
                 });
             }
 
+            LOGTAIL.info(`Completed airdrops for wager ${wagerId}`);
+
             done();
         } catch (err) {
             LOGTAIL.error(`Error airdropping ${err}`)
