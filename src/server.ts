@@ -29,7 +29,7 @@ const CORS_ORIGIN = process.env.ORIGIN as string || 'http://localhost:3000';
 - cancel wager - airdrop back bets
 - somehow log airdrop 
 
-- Log tx's through disc webhook
+
 - add message on side/show tiwtter
 
 - TODO: stress test wallet creation
@@ -39,14 +39,34 @@ const CORS_ORIGIN = process.env.ORIGIN as string || 'http://localhost:3000';
 - Check .$, (only returns first matching element) (airdrop, setwinners) (placedBets.$)
 - promise all setWinners
 
-- do mainnet test before setting up
+
 - test cancel
 - airdrop need retry?
 - add nippies metadata, add winner image
 - live in reward pool check game status
 - refresh game data
 - websockets?
-- make sure fund wallet working main net
+
+
+
+- implement game timers from backend
+
+- verify gameData is alright
+
+try catch around fetch -> websockets - DONE
+
+finished airdrop message - DONE
+
+send feeeees! - DONE
+
+
+- Log tx's through disc webhook
+
+- do mainnet test before setting up
+  - hook up domain
+  - get ready to upgrade servers
+  - make sure fund wallet working main net
+  ^ cluster op in env
 */
 
 const authorization = (req: express.Request, res: express.Response, next: express.NextFunction) => {
