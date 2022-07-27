@@ -7,6 +7,7 @@ import airdrop, { getAirdropProgress } from "../queries/airdrop";
 import { cancelWager } from "../queries/cancelWager";
 import createWager from "../queries/createWager";
 import declareWinner from "../queries/declareWinner";
+import sendFees from "../queries/sendFees";
 
 const router = express.Router();
 
@@ -72,6 +73,25 @@ router.post('/declareWinner', async (req, res) => {
     }
 
     res.status(200).json({ message: "Declared winner", data: result })
+})
+
+router.post('/sendFees', async (req, res) => { 
+    const { wagerId } = req.body;
+
+    const wagerObjectId = getObjectId(wagerId);
+
+    if(!wagerObjectId) {
+        res.status(400).send({ message: "Invalid input", data: {} });
+        return;
+    }
+
+    const result = await sendFees(wagerObjectId)
+
+    if(result instanceof ServerError) {
+        return res.status(400).json({ message: result.message, data: result }) 
+    }
+
+    res.status(200).json({ message: "Sent fees", data: result })
 })
 
 router.post('/airdrop', async (req, res) => { 
