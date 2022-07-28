@@ -57,7 +57,6 @@ export default async function createWager(title: string,
             throw new ServerError("Error creating wager wallet.");
         }
 
-
         // Schedule status' NOTE: Max agenda concurrency 20, keep in mind.
         // Schedule for future games
         // TODO: send websocket on live (or client side)
@@ -67,6 +66,8 @@ export default async function createWager(title: string,
                 status: 'live',
                 wager
             });
+        } else {
+            await Wager.findByIdAndUpdate(wager._id, { status: 'live' })
         }
         
         await AGENDA.schedule(new Date(endDate), "update status", {
