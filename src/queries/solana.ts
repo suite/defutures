@@ -94,7 +94,7 @@ export async function getKeypair(secretString: string): Promise<web3.Keypair> {
 
 export async function getTokenBalanceChange(signature: string, escrowWallet: string): Promise<TokenBalanceResult | null> {
     try {
-        const transactionDetails = await CONNECTION.getParsedTransaction(signature);
+        const transactionDetails = await CONNECTION.getParsedTransaction(signature, 'confirmed');
 
         if(!transactionDetails 
             || !transactionDetails.meta?.preTokenBalances 
