@@ -15,8 +15,10 @@ export const LOGTAIL = new Logtail("Mv7iTABrBnrLdVoKkZiabnyG");
 export const AGENDA = new Agenda({ db: { address: MONGO_URL! } });
 
 const CLUSTER = process.env.CLUSTER as Cluster || 'devnet';
+const CLUSTER_URL = process.env.CLUSTER_URL as string;
+
 export const CONNECTION = new Connection(
-  clusterApiUrl(CLUSTER),
+  CLUSTER_URL ? CLUSTER_URL : clusterApiUrl(CLUSTER),
   'confirmed'
 );
 

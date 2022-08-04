@@ -1,12 +1,11 @@
 require("dotenv").config();
-import express from "express";
+import express, { NextFunction, Request, Response } from "express";
 import cors from 'cors';
 import cookieParser from "cookie-parser";
 import { connectMongo, KEY } from './config/database';
 import apiRoute from './routes/api';
 import protectedRoute from './routes/protected';
 import jwt from 'jsonwebtoken';
-import { PublicKey } from "@solana/web3.js";
 
 const app = express();
 const port = process.env.PORT || 3001;
@@ -58,7 +57,14 @@ send feeeees! - DONE
 
 - Log tx's through disc webhook
 
+- Change timeout for /protected - DONE
+- Upgrade servers - DONE
+- Make sure CORS is good - DONE
+- Change RPC? - DONE
+- /protected - DONE
+
 - do mainnet test before setting up
+  - RPC - SWITCH PROVIDER, UPGRADE FUNCS..?
   - hook up domain
   - get ready to upgrade servers
   - make sure fund wallet working main net
@@ -97,9 +103,11 @@ const authorization = (req: express.Request, res: express.Response, next: expres
     // Protected api
     app.use('/protected', authorization, protectedRoute);
 
-    app.listen(port, () => {
+    const server = app.listen(port, () => {
         console.log(`Example app listening on port ${port}`)
     })
+
+    server.timeout = 240000;
 })();
 
 
