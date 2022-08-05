@@ -64,7 +64,7 @@ export default async function airdrop(wagerId: ObjectId) {
             return done(new ServerError("Internal error has occured."));
         }
     }).catch(err => {
-        console.log(err)
+        LOGTAIL.info(`Error while airdropping ${err}`)
     })
 }
 
@@ -153,7 +153,7 @@ async function setAirdropProgress(wagerId: ObjectId, status: boolean) {
     try {
         await Wager.findByIdAndUpdate(wagerId, { airdropProgress: status })
     } catch (err) {
-        console.log(err)
+        LOGTAIL.info(`Error while setting airdrop status ${err}`)
     }
 }
 
@@ -166,7 +166,7 @@ export async function getAirdropProgress(wagerId: ObjectId, checkCompleted?: boo
 
         return wager.airdropProgress;
     } catch (err) {
-        console.log(err)
+        LOGTAIL.info(`Error getting airdrop progress ${err}`)
         return true;
     }
 }
