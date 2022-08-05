@@ -6,6 +6,7 @@ import crypto from "crypto";
 import WagerWallet from '../model/wagerWallet';
 import Wager from '../model/wager';
 import { ALGORITHM, CONNECTION, FUND_KEYPAIR, KEY, LOGTAIL, SALT, TOKEN_MINT } from "../config/database";
+import { getEscrowWallet } from "../misc/utils";
 const bip39 = require('bip39');
 
 export default async function createWagerEscrows(wager: WagerSchema): Promise<boolean> {
@@ -47,8 +48,13 @@ async function createWagerEscrow(selectionId: ObjectId): Promise<web3.PublicKey 
             'selections.$.publicKey': newWallet.publicKey.toString()
         }})
 
+        // Ensures we can read in from database
+        const createdKeyPair = await getEscrowWallet(selectionId);
+        
+        LOGTAIL.info(`Created keypair for selection ${selectionId} ${createdKeyPair.publicKey.toString()}`);
+
         // Creates token account for mint
-        const tokenAccount = await splToken.getOrCreateAssociatedTokenAccount(CONNECTION, FUND_KEYPAIR, TOKEN_MINT, newWallet.publicKey);
+        const tokenAccount = await splToken.getOrCreateAssociatedTokenAccount(CONNECTION, FUND_KEYPAIR, TOKEN_MINT, createdKeyPair.publicKey);
 
         if(!tokenAccount) throw 'Error creating token account.'
 
