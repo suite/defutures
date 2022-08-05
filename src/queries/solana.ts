@@ -41,7 +41,7 @@ export async function transferSplToken(fromKeypair: web3.Keypair, toPubkey: web3
 
         return { signature, error: -1 };
     } catch (error) {
-        console.log(error)
+        LOGTAIL.info(`Error transferring ${amount} ${toPubkey.toString()} ${error}`);
 
         return {
             signature,
