@@ -9,6 +9,7 @@ import findMissingEscrowTransactions from "../queries/findMissingEscrowTransacti
 import Wager from '../model/wager';
 import { Logtail } from "@logtail/node";
 
+// TODO: Better is dev check, move logtail
 export const IS_DEV = process.env.HEROKU ? false : true;
 export const LOGTAIL = new Logtail("Mv7iTABrBnrLdVoKkZiabnyG");
 
