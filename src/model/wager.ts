@@ -22,7 +22,7 @@ const placedBet = new mongoose.Schema({
     publicKey: { type: String },
     amounts: { type: [betAmount], default: [] },
     selectionId: { type: mongoose.Schema.Types.ObjectId },
-    nickname: { type: String, default: "" },
+    nickname: { type: String, default: '' },
     winAmount: { type: Number, default: 0 },
     transferData: { type: transferData, default: { error: 0 } }
 });
@@ -43,6 +43,7 @@ const wagerSelection = new mongoose.Schema({
 const wagerSchema = new mongoose.Schema({
     title: { type: String },
     description: { type: String },
+    finalScore: { type: String, default: '' },
     status: {
         type: String,
         enum : ['upcoming', 'live', 'closed', 'completed', 'cancelled'],

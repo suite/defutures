@@ -10,7 +10,7 @@ import { getEscrowWallet } from "../misc/utils";
 import { LOGTAIL } from "../config/database";
 import setLosers from "./setLosers";
 
-export default async function declareWinner(selectionId: ObjectId): Promise<boolean | ServerError> {
+export default async function declareWinner(selectionId: ObjectId, finalScore?: string): Promise<boolean | ServerError> {
     try {
         // Winner already selected or wager still live/upcoming 
         const otherWinners = await Wager.findOne({ 'selections._id': selectionId, $or: [{'status': 'completed'}, {'status': { $ne: 'closed' }}] })
@@ -41,10 +41,17 @@ export default async function declareWinner(selectionId: ObjectId): Promise<bool
         await setLosers(losingSelection._id)
 
         // Finally update status
-        await Wager.updateOne({ 'selections._id': selectionId }, { '$set': {
+        const statusUpdate = {
             'selections.$.winner': true,
-            'status': 'completed'
-        }})
+            'status': 'completed',
+            'finalScore': ''
+        };
+
+        if(finalScore) {
+            statusUpdate['finalScore'] = finalScore;
+        }
+
+        await Wager.updateOne({ 'selections._id': selectionId }, { '$set': statusUpdate })
 
         LOGTAIL.info(`Delcared selection ${selectionId} as winner`)
 

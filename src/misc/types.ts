@@ -42,6 +42,7 @@ export type WagerSchema = {
     _id: ObjectId,
     title: string,
     description: string,
+    finalScore: string,
     status: 'upcoming' | 'live' | 'closed' | 'completed' | 'cancelled',
     league: 'football' | 'basketball' | 'baseball' | 'boxing' | 'soccer',
     selections: Array<WagerSelectionSchema>,

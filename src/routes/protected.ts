@@ -65,7 +65,7 @@ router.post('/createWager', async (req, res) => {
 })
 
 router.post('/declareWinner', async (req, res) => { 
-    const { selectionId } = req.body;
+    const { selectionId, finalScore } = req.body;
 
     const selectionObjectId = getObjectId(selectionId);
 
@@ -74,7 +74,7 @@ router.post('/declareWinner', async (req, res) => {
         return;
     }
 
-    const result = await declareWinner(selectionObjectId)
+    const result = await declareWinner(selectionObjectId, finalScore)
 
     if(result instanceof ServerError) {
         return res.status(400).json({ message: result.message, data: result }) 
