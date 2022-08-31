@@ -16,19 +16,23 @@ router.get("/status", (req, res) => {
 })
 
 router.post('/createWager', async (req, res) => {
-    const { title, 
-        selection1, 
+    const { title,
+        description,
+        league,
+        selection1,
+        selection1Record, 
         selection1img, 
         selection1winnerImg, 
         selection1nftImg,
         selection2, 
+        selection2Record,
         selection2img, 
         selection2winnerImg, 
         selection2nftImg,
         startDate, 
         endDate, gameDate } = req.body;
 
-    if (!(title && selection1 && selection2 && selection1img && selection1winnerImg && selection1nftImg
+    if (!(title && description && selection1 && selection2 && selection1img && selection1winnerImg && selection1nftImg
          && selection2img && selection2winnerImg && selection2nftImg && startDate && endDate && gameDate) || 
         new Date(startDate) > new Date(endDate)) // Ensures end date > start date
         {
@@ -36,12 +40,16 @@ router.post('/createWager', async (req, res) => {
             return;
     }
   
-    const result = await createWager(title, 
-        selection1, 
+    const result = await createWager(title,
+        description,
+        league, 
+        selection1,
+        selection1Record, 
         selection1img, 
         selection1winnerImg, 
         selection1nftImg,
-        selection2, 
+        selection2,
+        selection2Record, 
         selection2img, 
         selection2winnerImg, 
         selection2nftImg,

@@ -29,6 +29,7 @@ const placedBet = new mongoose.Schema({
 
 const wagerSelection = new mongoose.Schema({
     title: { type: String },
+    record: { type: String },
     totalUsers: { type: Number, default: 0 },
     totalSpent: { type: Number, default: 0 },
     winner: { type: Boolean, default: false },  
@@ -41,10 +42,16 @@ const wagerSelection = new mongoose.Schema({
 // TODO: maybe add createdby (pubkey) to keep track..
 const wagerSchema = new mongoose.Schema({
     title: { type: String },
+    description: { type: String },
     status: {
         type: String,
         enum : ['upcoming', 'live', 'closed', 'completed', 'cancelled'],
         default: 'upcoming'
+    },
+    league: {
+        type: String,
+        enum : ['football', 'basketball', 'baseball', 'boxing', 'soccer'],
+        default: 'basketball'
     },
     selections: { type: [wagerSelection] },
     startDate: { type: Number },

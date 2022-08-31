@@ -9,12 +9,16 @@ export function getUTCTime(date: Date): number {
     date.getUTCHours(), date.getUTCMinutes(), date.getUTCSeconds());
 }
 
-export default async function createWager(title: string, 
+export default async function createWager(title: string,
+    description: string,
+    league: string,
     selection1: string, 
+    selection1Record: string,
     selection1img: string, 
     selection1winnerImg: string,
     selection1nftImg: string,
     selection2: string, 
+    selection2Record: string,
     selection2img: string, 
     selection2winnerImg: string, 
     selection2nftImg: string,
@@ -26,16 +30,20 @@ export default async function createWager(title: string,
 
         const wagerOptions = {
             title,
+            description,
             status: "upcoming",
+            league,
             selections: [
                 {
                     title: selection1,
+                    record: selection1Record,
                     imageUrl: selection1img,
                     winnerImageUrl: selection1winnerImg,
                     nftImageUrl: selection1nftImg
                 },
                 {
                     title: selection2,
+                    record: selection2Record,
                     imageUrl: selection2img,
                     winnerImageUrl: selection2winnerImg,
                     nftImageUrl: selection2nftImg

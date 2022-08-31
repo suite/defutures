@@ -5,6 +5,7 @@ import { ServerError } from "./serverError"
 export type WagerSelectionSchema = {
     _id: ObjectId,
     title: string,
+    record: string,
     totalUsers: number,
     totalSpent: number,
     winner: boolean,
@@ -40,7 +41,9 @@ export type WagerBetSchema = {
 export type WagerSchema = {
     _id: ObjectId,
     title: string,
+    description: string,
     status: 'upcoming' | 'live' | 'closed' | 'completed' | 'cancelled',
+    league: 'football' | 'basketball' | 'baseball' | 'boxing' | 'soccer',
     selections: Array<WagerSelectionSchema>,
     startDate: number,
     endDate: number,

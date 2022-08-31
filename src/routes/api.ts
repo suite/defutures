@@ -76,7 +76,9 @@ router.get('/wagers', async (req, res) => {
     try {
         const wagers: Array<WagerSchema> = await Wager.find({}, { 
             title: 1,
+            description: 1,
             status: 1,
+            league: 1,
             selections: 1,
             startDate: 1,
             endDate: 1,

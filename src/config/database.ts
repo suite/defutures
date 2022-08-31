@@ -9,7 +9,7 @@ import findMissingEscrowTransactions from "../queries/findMissingEscrowTransacti
 import Wager from '../model/wager';
 import { Logtail } from "@logtail/node";
 
-// TODO: Better is dev check, move logtail
+// TODO: Better is dev check, move logtail to env, new for dev
 export const IS_DEV = process.env.HEROKU ? false : true;
 export const LOGTAIL = new Logtail("Mv7iTABrBnrLdVoKkZiabnyG");
 
@@ -34,6 +34,7 @@ export const ALGORITHM = "aes-192-cbc";
 export const SALT = process.env.SALT as string;
 export const KEY = process.env.KEY as string;
 
+// Change token type based  off cluster/clusterurl
 // Dust mint: DUSTawucrTsGU8hcqRdHDCbuYhCPADMLM2VcCb8VnFnQ
 export const TOKEN_MINT = new PublicKey(process.env.TOKEN_MINT as string)
 
