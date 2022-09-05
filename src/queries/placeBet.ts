@@ -17,6 +17,8 @@ export default async function placeBet(wagerId: ObjectId, selectionId: ObjectId,
         if(!wagerPubkey) throw new ServerError("No live wager or selection was not found.");
 
         // Confirm unique sig TODO: make sure you can fault sig (adding spaces)
+
+        // TODO: Remove selection.publicKey check (so you check across all wagers instead... (MULTIPLE GAMES))
         const usedSig = await Wager.findOne({'selections.publicKey': wagerPubkey, 'placedBets.amounts.signature': signature });
         
         if(usedSig) {

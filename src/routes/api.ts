@@ -11,6 +11,7 @@ import { ServerError } from "../misc/serverError";
 import getUserWager from "../queries/getUserWager";
 import { WagerSchema } from "../misc/types";
 import getUserPick from "../queries/getUserPick";
+import placePick from "../queries/placePick";
 
 const router = express.Router();
 
@@ -115,6 +116,25 @@ router.post('/placeBet', async (req, res) => {
     }
 
     res.status(200).json({ message: "Placed bet", data: result })
+})
+
+router.post('/placePick', async (req, res) => {
+    const { pickId, pickedTeams, signature } = req.body;
+
+    const pickObjectId = getObjectId(pickId);
+
+    if (!(pickObjectId && signature)) {
+        res.status(400).send({ message: "Invalid input", data: {} });
+        return;
+    }
+
+    const result = await placePick(pickId, pickedTeams, signature);
+
+    if(result instanceof ServerError) {
+        return res.status(400).json({ message: result.message, data: result }) 
+    }
+
+    res.status(200).json({ message: "Placed pick", data: result })
 })
 
 router.post('/getUserWager', async (req, res) => {
