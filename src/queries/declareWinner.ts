@@ -6,7 +6,7 @@ import Wager from '../model/wager';
 import { PublicKey } from "@solana/web3.js";
 import { ServerError } from "../misc/serverError";
 import setWinners from "./setWinners";
-import { getEscrowWallet } from "../misc/utils";
+import { getWagerEscrowWallet } from "../misc/utils";
 import { LOGTAIL } from "../config/database";
 import setLosers from "./setLosers";
 
@@ -27,7 +27,7 @@ export default async function declareWinner(selectionId: ObjectId, finalScore?: 
         const loserSelectionPubkey = new PublicKey(losingSelection.publicKey);
         const winnerSelectionPubkey = new PublicKey(winningSelection.publicKey);
     
-        const loserWalletKeypair = await getEscrowWallet(losingSelection._id);
+        const loserWalletKeypair = await getWagerEscrowWallet(losingSelection._id);
 
         const loserWalletBalance = await getBalance(loserSelectionPubkey)
 

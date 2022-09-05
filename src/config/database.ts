@@ -7,6 +7,7 @@ import createWagerEscrows from "../queries/createWagerEscrows";
 import { WagerSchema } from "../misc/types";
 import findMissingEscrowTransactions from "../queries/findMissingEscrowTransactions";
 import Wager from '../model/wager';
+import Pick from '../model/pick'
 import { Logtail } from "@logtail/node";
 
 // TODO: Better is dev check, move logtail to env, new for dev
@@ -81,6 +82,32 @@ AGENDA.define("update status", async (job: Job) => {
 
   await Wager.updateOne({ _id: wagerId }, { status })
 })
+
+AGENDA.define("update pick", async (job: Job) => {
+  const { status, pickId } = job.attrs.data as {
+    status: string,
+    pickId: ObjectId,
+  };
+
+  LOGTAIL.info(`Updating pick status ${pickId} to ${status}`)
+
+  // TODO: Build out for picks
+  // Final check for missing txs before closing 
+  // if(status === 'closed') {
+  //     const updatedWager: WagerSchema | null = await Wager.findById(wager._id);
+
+  //     if(updatedWager) {
+  //       for(const selection of updatedWager.selections) {
+  //         if(selection.publicKey) {
+  //             await findMissingEscrowTransactions(new PublicKey(selection.publicKey))
+  //         }
+  //       }
+  //     }
+  // }
+
+  await Pick.findByIdAndUpdate(pickId, { status })
+})
+
 
 AGENDA.define("check transactions", async (job: Job) => {
   const liveWagers: Array<WagerSchema> | null = await Wager.find({ status: 'live' });

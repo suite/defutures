@@ -67,6 +67,13 @@ export type WagerWalletSchema = {
     privateKey: string
 }
 
+export type PickWalletSchema = {
+    _id: ObjectId,
+    pickId: ObjectId,
+    publicKey: string,
+    privateKey: string
+}
+
 export type SplTransferResult = {
     signature?: string,
     error?: number
@@ -77,4 +84,46 @@ export type AirdropAmount = {
     toPubkey: PublicKey,
     fromKeypair: Keypair,
     selectionId: ObjectId
+}
+
+export type PickTeam = {
+    _id: ObjectId,
+    name: string,
+    record: string,
+    imageUrl: string,
+    winner: boolean,
+    selectionId: ObjectId
+}
+
+export type PickBetSchema = {
+    _id: ObjectId,
+    publicKey: string,
+    pickedTeams: Array<PickTeam>,
+    nickname: string,
+    winAmount: number,
+    amounts: Array<WagerBetAmountSchema>,
+    transferData: WagerTransferData
+}
+
+export type PickSelectionSchema = {
+    _id: ObjectId,
+    teams: Array<PickTeam>, // The two teams in the selection
+    gameDate: Number,
+    isTiebreaker: boolean
+}
+
+export type PickSchema = {
+    _id: ObjectId,
+    title: string,
+    description: string,
+    publicKey: string,
+    entryFee: number,
+    totalUsers: number,
+    totalSpent: number,
+    status: 'upcoming' | 'live' | 'closed' | 'completed' | 'cancelled',
+    startDate: number,
+    endDate: number,
+    airdropProgress: boolean,
+    selections: Array<PickSelectionSchema>,
+    placedBets: Array<PickBetSchema>
 }

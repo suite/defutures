@@ -1,8 +1,9 @@
 import { Keypair, PublicKey } from "@solana/web3.js";
 import { ObjectId } from "mongodb";
 import Whitelist from "../model/whitelist";
-import { WagerWalletSchema } from "./types";
+import { PickWalletSchema, WagerWalletSchema } from "./types";
 import WagerWallet from '../model/wagerWallet';
+import PickWallet from '../model/pickWallet'
 import { getKeypair } from "../queries/solana";
 import { ServerError } from "./serverError";
 
@@ -29,13 +30,22 @@ export async function isWhitelisted(publicKey: string): Promise<boolean> {
     }
 }
 
-export async function getEscrowWallet(selectionId: ObjectId): Promise<Keypair> {
+export async function getWagerEscrowWallet(selectionId: ObjectId): Promise<Keypair> {
     const wallet: WagerWalletSchema | null = await WagerWallet.findOne({ selectionId });
 
     if(!wallet) throw new ServerError("Could not find wager wallet.");
 
     return await getKeypair(wallet.privateKey);    
 }
+
+export async function getPickEscrowWallet(pickId: ObjectId): Promise<Keypair> {
+    const wallet: PickWalletSchema | null = await PickWallet.findOne({ pickId });
+
+    if(!wallet) throw new ServerError("Could not find pick wallet.");
+
+    return await getKeypair(wallet.privateKey);
+}
+
 
 export function getObjectId(id: string): ObjectId | null {
     try {

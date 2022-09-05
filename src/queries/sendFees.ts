@@ -2,7 +2,7 @@ import { ObjectId } from "mongodb";
 import { LOGTAIL, FUND_KEYPAIR } from "../config/database";
 import { ServerError } from "../misc/serverError";
 import { WagerSchema } from "../misc/types";
-import { getEscrowWallet } from "../misc/utils";
+import { getWagerEscrowWallet } from "../misc/utils";
 import Wager from '../model/wager';
 import { getBalance, transferSplToken } from "./solana";
 
@@ -18,7 +18,7 @@ export default async function sendFees(wagerId: ObjectId) {
 
         const winningSelection = wager.selections.filter((selection) => selection.winner === true)[0];
 
-        const winnerWalletKeypair = await getEscrowWallet(winningSelection._id);
+        const winnerWalletKeypair = await getWagerEscrowWallet(winningSelection._id);
         const walletBalance = await getBalance(winnerWalletKeypair.publicKey)
 
         const tx = await transferSplToken(winnerWalletKeypair, FUND_KEYPAIR.publicKey, walletBalance);

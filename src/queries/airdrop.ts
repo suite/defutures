@@ -6,7 +6,7 @@ import { Keypair, PublicKey } from "@solana/web3.js";
 import { ObjectId } from "mongodb";
 import { ServerError } from "../misc/serverError";
 import { AirdropAmount, WagerSchema, WagerWalletSchema } from "../misc/types";
-import { getEscrowWallet } from "../misc/utils";
+import { getWagerEscrowWallet } from "../misc/utils";
 import Wager from '../model/wager';
 import WagerWallet from '../model/wagerWallet';
 import { transferSplToken } from "./solana";
@@ -100,7 +100,7 @@ async function getAirdropAmounts(wager: WagerSchema): Promise<Array<AirdropAmoun
             }
         ])
 
-        const winningWallet: Keypair | null = await getEscrowWallet(winningSelectionId);
+        const winningWallet: Keypair | null = await getWagerEscrowWallet(winningSelectionId);
 
         if(!(winningBets && winningWallet)) return null;
 
@@ -123,7 +123,7 @@ async function getAirdropAmounts(wager: WagerSchema): Promise<Array<AirdropAmoun
     const wagerEscrows: { [key: string]: Keypair } = {};
 
     for(const selection of wager.selections) {
-        const escrowKeypair = await getEscrowWallet(selection._id);
+        const escrowKeypair = await getWagerEscrowWallet(selection._id);
 
         if(!escrowKeypair) return null;
 
