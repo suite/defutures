@@ -36,10 +36,14 @@ export default async function placePick(pickId: ObjectId, pickedTeams: Array<Pic
 
         const finalBetAmount = amountBet.amount;
 
+        if(Math.abs(pickData.entryFee - finalBetAmount) >= 0.1) {
+            throw new ServerError("Invalid entry fee amount.");
+        }
+
         const publicKey = amountBet.userPublicKey;  
 
         // Add them to placedBets, increase totalUsers
-        await Pick.updateOne({ 
+        await Pick.updateOne({
             _id: pickId, 
         }, 
         { 
