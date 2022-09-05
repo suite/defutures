@@ -10,6 +10,7 @@ import { KEY } from "../config/database";
 import { ServerError } from "../misc/serverError";
 import getUserWager from "../queries/getUserWager";
 import { WagerSchema } from "../misc/types";
+import getUserPick from "../queries/getUserPick";
 
 const router = express.Router();
 
@@ -133,6 +134,25 @@ router.post('/getUserWager', async (req, res) => {
     }
 
     res.status(200).json({ message: "Fetched user wager", data: result })
+})
+
+router.post('/getUserPick', async (req, res) => {
+    const { pickId, publicKey } = req.body;
+
+    const pickObjectId = getObjectId(pickId);
+
+    if (!(pickObjectId && isValidPubKey(publicKey))) {
+        res.status(400).send({ message: "Invalid input", data: {} });
+        return;
+    }
+
+    const result = await getUserPick(pickObjectId, publicKey);
+
+    if(result instanceof ServerError) {
+        return res.status(400).json({ message: result.message, data: result }) 
+    }
+
+    res.status(200).json({ message: "Fetched user pick", data: result })
 })
 
 export default router;
