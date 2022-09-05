@@ -108,7 +108,8 @@ export type PickBetSchema = {
 export type PickSelectionSchema = {
     _id: ObjectId,
     teams: Array<PickTeam>, // The two teams in the selection
-    gameDate: Number,
+    gameDate: number,
+    finalScore: string,
     isTiebreaker: boolean
 }
 

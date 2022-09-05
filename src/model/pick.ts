@@ -39,6 +39,7 @@ const placedBet = new mongoose.Schema({
 const pickSelection = new mongoose.Schema({
     teams: { type: [pickTeam] }, // The two teams in the selection
     gameDate: { type: Number },
+    finalScore: { type: String },
     isTiebreaker: { type: Boolean }
 });
 
