@@ -7,7 +7,7 @@ import airdrop, { getAirdropProgress } from "../queries/airdrop";
 import { cancelPick } from "../queries/cancelPick";
 import { cancelWager } from "../queries/cancelWager";
 import createWager from "../queries/createWager";
-import declareWinner from "../queries/declareWinner";
+import declareWagerWinner from "../queries/declareWinner";
 import sendFees from "../queries/sendFees";
 
 const router = express.Router();
@@ -75,7 +75,7 @@ router.post('/declareWinner', async (req, res) => {
         return;
     }
 
-    const result = await declareWinner(selectionObjectId, finalScore)
+    const result = await declareWagerWinner(selectionObjectId, finalScore)
 
     if(result instanceof ServerError) {
         return res.status(400).json({ message: result.message, data: result }) 

@@ -10,7 +10,7 @@ import { getWagerEscrowWallet } from "../misc/utils";
 import { LOGTAIL } from "../config/database";
 import setLosers from "./setLosers";
 
-export default async function declareWinner(selectionId: ObjectId, finalScore?: string): Promise<boolean | ServerError> {
+export default async function declareWagerWinner(selectionId: ObjectId, finalScore?: string): Promise<boolean | ServerError> {
     try {
         // Winner already selected or wager still live/upcoming 
         const otherWinners = await Wager.findOne({ 'selections._id': selectionId, $or: [{'status': 'completed'}, {'status': { $ne: 'closed' }}] })
