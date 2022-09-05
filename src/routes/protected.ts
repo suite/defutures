@@ -4,6 +4,7 @@ import { ServerError } from "../misc/serverError";
 import { getObjectId } from "../misc/utils";
 import WagerWallet from "../model/wagerWallet";
 import airdrop, { getAirdropProgress } from "../queries/airdrop";
+import { cancelPick } from "../queries/cancelPick";
 import { cancelWager } from "../queries/cancelWager";
 import createWager from "../queries/createWager";
 import declareWinner from "../queries/declareWinner";
@@ -141,6 +142,25 @@ router.post('/cancelWager', async (req, res) => {
     }
 
     res.status(200).json({ message: "Cancelled wager", data: result })
+})
+
+router.post('/cancePick', async (req, res) => { 
+    const { pickId } = req.body;
+
+    const pickObjectId = getObjectId(pickId);
+
+    if(!pickObjectId) {
+        res.status(400).send({ message: "Invalid input", data: {} });
+        return;
+    }
+
+    const result = await cancelPick(pickObjectId)
+
+    if(result instanceof ServerError) {
+        return res.status(400).json({ message: result.message, data: result }) 
+    }
+
+    res.status(200).json({ message: "Cancelled pick", data: result })
 })
 
 router.get('/wallets', async (req, res) => {
