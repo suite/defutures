@@ -6,7 +6,6 @@ import Pick from '../model/pick';
 import { getTokenBalanceChange } from "./solana";
 
 
-// TODO: pickedTeams: Array<ObjectId>
 export default async function placePick(pickId: ObjectId, pickedTeams: Array<ObjectId>, tieBreaker: number, signature: string): Promise<TokenBalanceResult | ServerError> {
     try {
         const pickData: PickSchema | null = await Pick.findOne({ _id: pickId, status: "live" });
@@ -23,8 +22,18 @@ export default async function placePick(pickId: ObjectId, pickedTeams: Array<Obj
             throw new ServerError("Transaction signature already used");
         }
 
-        // Confirm correct number of pickedTeams -> TODO: Get selectionids from pickedteamss
-        const validPickedTeams = validatePickedTeams(pickData, pickedTeams);
+        // Confirm correct number of pickedTeams
+        const pickedSelections = [];
+        const pickedTeamsStringified = pickedTeams.map(team => JSON.stringify(team));
+        for(const selection of pickData.selections) {
+            for(const team of selection.teams) {
+                if(pickedTeamsStringified.includes(JSON.stringify(team._id))) {
+                    pickedSelections.push(team.selectionId);
+                }
+            }
+        }
+
+        const validPickedTeams = validatePickedTeams(pickData, pickedSelections);
 
         if(!validPickedTeams) throw new ServerError("Invalid team selection.")
 
@@ -81,8 +90,6 @@ function validatePickedTeams(pick: PickSchema, pickedTeams: Array<ObjectId>): bo
 
         // Picked correct number of teams
         if(pickedTeams.length !== numSeletions) return false;
-    
-        // TODO: FIX!
 
         // Confrim they did not pick two from same selection
         const selectionsPicked: string[] = []
