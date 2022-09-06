@@ -69,6 +69,8 @@ send feeeees! - DONE
   - get ready to upgrade servers
   - make sure fund wallet working main net
   ^ cluster op in env
+
+  TOOD: Test on postman
 */
 
 const authorization = (req: express.Request, res: express.Response, next: express.NextFunction) => {
