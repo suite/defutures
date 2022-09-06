@@ -92,24 +92,28 @@ export type PickTeam = {
     record: string,
     imageUrl: string,
     winner: boolean,
-    selectionId: ObjectId
+    selectionId: ObjectId,
+    finalScore: number,
+    totalScore?: number
 }
 
 export type PickBetSchema = {
     _id: ObjectId,
     publicKey: string,
-    pickedTeams: Array<PickTeam>,
+    pickedTeams: Array<ObjectId>,
+    tieBreaker: number,
     nickname: string,
     winAmount: number,
     amounts: Array<WagerBetAmountSchema>,
-    transferData: WagerTransferData
+    transferData: WagerTransferData,
+    points: number
 }
 
 export type PickSelectionSchema = {
     _id: ObjectId,
     teams: Array<PickTeam>, // The two teams in the selection
     gameDate: number,
-    finalScore: string,
+    totalScore: number,
     isTiebreaker: boolean
 }
 

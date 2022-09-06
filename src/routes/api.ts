@@ -3,13 +3,14 @@ import express from "express";
 import nacl from "tweetnacl";
 import { getObjectId, isValidPubKey, isWhitelisted } from "../misc/utils";
 import Wager from "../model/wager";
+import Pick from "../model/pick";
 import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 import placeBet from "../queries/placeBet";
 import { KEY } from "../config/database";
 import { ServerError } from "../misc/serverError";
 import getUserWager from "../queries/getUserWager";
-import { WagerSchema } from "../misc/types";
+import { PickSchema, WagerSchema } from "../misc/types";
 import getUserPick from "../queries/getUserPick";
 import placePick from "../queries/placePick";
 
@@ -98,6 +99,30 @@ router.get('/wagers', async (req, res) => {
     }   
 })
 
+router.get('/picks', async (req, res) => {
+    try {
+        const picks: Array<PickSchema> = await Pick.find({}, { 
+            title: 1,
+            description: 1,
+            publicKey: 1,
+            entryFee: 1,
+            totalUsers: 1,
+            totalSpent: 1,
+            status: 1,
+            startDate: 1,
+            endDate: 1,
+            _id: 1
+         })
+
+        picks.filter(pick => pick.status !== 'live')
+                                    .map(pick => pick.publicKey = '');
+        
+        res.status(200).json(picks);
+    } catch (err) {
+        return res.sendStatus(500);
+    }   
+})
+
 router.post('/placeBet', async (req, res) => {
     const { wagerId, selectionId, signature } = req.body;
 
@@ -119,16 +144,16 @@ router.post('/placeBet', async (req, res) => {
 })
 
 router.post('/placePick', async (req, res) => {
-    const { pickId, pickedTeams, signature } = req.body;
+    const { pickId, pickedTeams, tieBreaker, signature } = req.body;
 
     const pickObjectId = getObjectId(pickId);
 
-    if (!(pickObjectId && signature)) {
+    if (!(pickObjectId && pickedTeams && tieBreaker && signature)) {
         res.status(400).send({ message: "Invalid input", data: {} });
         return;
     }
 
-    const result = await placePick(pickId, pickedTeams, signature);
+    const result = await placePick(pickId, pickedTeams, tieBreaker, signature);
 
     if(result instanceof ServerError) {
         return res.status(400).json({ message: result.message, data: result }) 

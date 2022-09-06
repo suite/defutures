@@ -22,24 +22,27 @@ const pickTeam = new mongoose.Schema({
     record: { type: String },
     imageUrl: { type: String },
     winner: { type: Boolean, default: false },
-    selectionId: { type: mongoose.Schema.Types.ObjectId }
+    selectionId: { type: mongoose.Schema.Types.ObjectId },
+    finalScore: { type: Number }
 });
 
 // placedBet
 const placedBet = new mongoose.Schema({
     publicKey: { type: String },
-    pickedTeams: { type: [pickTeam] },
+    pickedTeams: { type: [ mongoose.Schema.Types.ObjectId ] },
+    tieBreaker: { type: Number, default: 0 },
     nickname: { type: String, default: '' },
     winAmount: { type: Number, default: 0 },
     amounts: { type: [betAmount], default: [] },
     transferData: { type: transferData, default: { error: 0 } },
+    points: { type: Number, default: 0}
 });
 
 // pickSelection
 const pickSelection = new mongoose.Schema({
     teams: { type: [pickTeam] }, // The two teams in the selection
     gameDate: { type: Number },
-    finalScore: { type: String },
+    totalScore: { type: Number },
     isTiebreaker: { type: Boolean }
 });
 

@@ -6,7 +6,8 @@ import Pick from '../model/pick';
 import { getTokenBalanceChange } from "./solana";
 
 
-export default async function placePick(pickId: ObjectId, pickedTeams: Array<PickTeam>, signature: string): Promise<TokenBalanceResult | ServerError> {
+// TODO: Add tiebreaker
+export default async function placePick(pickId: ObjectId, pickedTeams: Array<ObjectId>, tieBreaker: number, signature: string): Promise<TokenBalanceResult | ServerError> {
     try {
         const pickData: PickSchema | null = await Pick.findOne({ _id: pickId, status: "live" });
 
@@ -50,6 +51,7 @@ export default async function placePick(pickId: ObjectId, pickedTeams: Array<Pic
             $push: { placedBets: {
                 publicKey,
                 pickedTeams,
+                tieBreaker,
                 amounts: [{
                     amount: finalBetAmount,
                     signature
@@ -72,7 +74,7 @@ export default async function placePick(pickId: ObjectId, pickedTeams: Array<Pic
     }
 }
 
-function validatePickedTeams(pick: PickSchema, pickedTeams: Array<PickTeam>): boolean {
+function validatePickedTeams(pick: PickSchema, pickedTeams: Array<ObjectId>): boolean {
     try {
         const numSeletions = pick.selections.length;
 
@@ -86,7 +88,7 @@ function validatePickedTeams(pick: PickSchema, pickedTeams: Array<PickTeam>): bo
                 return false;
             }
     
-            selectionsPicked.push(JSON.stringify(pickedTeam.selectionId))
+            selectionsPicked.push(JSON.stringify(pickedTeam))
         }
     
         return true;

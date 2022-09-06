@@ -7,7 +7,7 @@ import airdrop, { getAirdropProgress } from "../queries/airdrop";
 import { cancelPick } from "../queries/cancelPick";
 import { cancelWager } from "../queries/cancelWager";
 import createWager from "../queries/createWager";
-import declareWagerWinner from "../queries/declareWinner";
+import declareWagerWinner from "../queries/declareWagerWinner";
 import sendFees from "../queries/sendFees";
 
 const router = express.Router();
@@ -15,6 +15,10 @@ const router = express.Router();
 router.get("/status", (req, res) => {
     res.status(200).json({ loggedIn: true })
 })
+
+
+// TODO CREATE PICK , DECLARE PICK WINNER
+// AIRDROP
 
 router.post('/createWager', async (req, res) => {
     const { title,
@@ -144,7 +148,7 @@ router.post('/cancelWager', async (req, res) => {
     res.status(200).json({ message: "Cancelled wager", data: result })
 })
 
-router.post('/cancePick', async (req, res) => { 
+router.post('/cancelPick', async (req, res) => { 
     const { pickId } = req.body;
 
     const pickObjectId = getObjectId(pickId);
