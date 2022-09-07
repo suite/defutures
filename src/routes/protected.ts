@@ -6,7 +6,9 @@ import WagerWallet from "../model/wagerWallet";
 import airdrop, { getAirdropProgress } from "../queries/airdrop";
 import { cancelPick } from "../queries/cancelPick";
 import { cancelWager } from "../queries/cancelWager";
+import createPick from "../queries/createPick";
 import createWager from "../queries/createWager";
+import declarePickWinners from "../queries/declarePickWinners";
 import declareWagerWinner from "../queries/declareWagerWinner";
 import sendFees from "../queries/sendFees";
 
@@ -16,9 +18,6 @@ router.get("/status", (req, res) => {
     res.status(200).json({ loggedIn: true })
 })
 
-
-// TODO CREATE PICK , DECLARE PICK WINNER
-// AIRDROP
 
 router.post('/createWager', async (req, res) => {
     const { title,
@@ -69,6 +68,24 @@ router.post('/createWager', async (req, res) => {
     res.status(200).json({ message: "Created wager", data: result })    
 })
 
+router.post('/createPick', async (req, res) => {
+    const { title, description, entryFee, startDate, endDate, selections } = req.body;
+
+    if(!(title && description && entryFee && startDate && endDate && selections) || 
+        new Date(startDate) > new Date(endDate)) {
+            res.status(400).send({ message: "Invalid input", data: {} });
+            return;
+    }
+
+    const result = await createPick(title, description, entryFee, startDate, endDate, selections);
+
+    if(result instanceof ServerError) {
+        return res.status(400).json({ message: result.message, data: result }) 
+    }
+
+    res.status(200).json({ message: "Created pick", data: result })    
+})
+
 router.post('/declareWinner', async (req, res) => { 
     const { selectionId, finalScore } = req.body;
 
@@ -80,6 +97,25 @@ router.post('/declareWinner', async (req, res) => {
     }
 
     const result = await declareWagerWinner(selectionObjectId, finalScore)
+
+    if(result instanceof ServerError) {
+        return res.status(400).json({ message: result.message, data: result }) 
+    }
+
+    res.status(200).json({ message: "Declared winner", data: result })
+})
+
+router.post('/declarePickWinners', async (req, res) => { 
+    const { pickId, picks } = req.body;
+
+    const pickObjectId = getObjectId(pickId);
+
+    if(!(pickObjectId && picks)) {
+        res.status(400).send({ message: "Invalid input", data: {} });
+        return;
+    }
+
+    const result = await declarePickWinners(pickObjectId, picks)
 
     if(result instanceof ServerError) {
         return res.status(400).json({ message: result.message, data: result }) 

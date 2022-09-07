@@ -22,7 +22,6 @@ const pickTeam = new mongoose.Schema({
     record: { type: String },
     imageUrl: { type: String },
     winner: { type: Boolean, default: false },
-    selectionId: { type: mongoose.Schema.Types.ObjectId },
     finalScore: { type: Number }
 });
 

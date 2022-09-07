@@ -23,12 +23,17 @@ export default async function placePick(pickId: ObjectId, pickedTeams: Array<Obj
         }
 
         // Confirm correct number of pickedTeams
+        if(pickedTeams.length !== pickData.selections.length) {
+            throw new ServerError("Incorrect number of teams");
+        }
+
+        // Confirm no duplicate selections
         const pickedSelections = [];
         const pickedTeamsStringified = pickedTeams.map(team => JSON.stringify(team));
         for(const selection of pickData.selections) {
             for(const team of selection.teams) {
                 if(pickedTeamsStringified.includes(JSON.stringify(team._id))) {
-                    pickedSelections.push(team.selectionId);
+                    pickedSelections.push(selection._id);
                 }
             }
         }

@@ -29,7 +29,8 @@ const FUND_SEED = new Uint8Array(FUND_WALLET.split(",").map((e: string) => parse
 export const FUND_KEYPAIR = Keypair.fromSeed(FUND_SEED);
 
 export const PAYOUT_PRECISION = 100;
-export const FEE_MULTIPLIER = 0.9667; // 3.33% off each bet
+export const FEE_MULTIPLIER = 0.931; // 6.9% off each bet
+export const PICKEM_FEE_MULTIPLIER = 0.9;
 
 export const ALGORITHM = "aes-192-cbc";
 export const SALT = process.env.SALT as string;

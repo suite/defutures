@@ -92,7 +92,6 @@ export type PickTeam = {
     record: string,
     imageUrl: string,
     winner: boolean,
-    selectionId: ObjectId,
     finalScore: number,
     totalScore?: number
 }

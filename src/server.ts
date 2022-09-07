@@ -105,6 +105,11 @@ const authorization = (req: express.Request, res: express.Response, next: expres
     // Protected api
     app.use('/protected', authorization, protectedRoute);
 
+    // TODO REMOVE:
+
+    // app.use('/protected', protectedRoute);
+    
+
     const server = app.listen(port, () => {
         console.log(`Example app listening on port ${port}`)
     })

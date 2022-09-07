@@ -109,6 +109,7 @@ router.get('/picks', async (req, res) => {
             totalUsers: 1,
             totalSpent: 1,
             status: 1,
+            selections: 1,
             startDate: 1,
             endDate: 1,
             _id: 1

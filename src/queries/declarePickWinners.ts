@@ -1,5 +1,5 @@
 import { ObjectId } from "mongodb";
-import { LOGTAIL } from "../config/database";
+import { LOGTAIL, PAYOUT_PRECISION, PICKEM_FEE_MULTIPLIER } from "../config/database";
 import { ServerError } from "../misc/serverError";
 import { PickSchema, PickTeam } from "../misc/types";
 import Pick from '../model/pick';
@@ -23,9 +23,13 @@ export default async function declarePickWinners(pickId: ObjectId, picks: Array<
                 $inc: { 'selections.$.totalScore': pick.finalScore }
             })
 
-            await Pick.updateOne({ 'selections.teams._id': pick.pickTeamId }, { 
-                'selections.teams.$.finalScore': pick.finalScore,
-                'selections.teams.$.winner': pick.winner,
+            console.log(`on pick ${pick.selectionId}`)
+
+            await Pick.updateOne({ "_id": pickId }, { 
+                'selections.$[outer].teams.$[inner].finalScore': pick.finalScore,
+                'selections.$[outer].teams.$[inner].winner': pick.winner,
+            }, {
+                "arrayFilters": [{ "outer._id": pick.selectionId }, { "inner._id": pick.pickTeamId }]
             })
         }
 
@@ -45,6 +49,7 @@ export default async function declarePickWinners(pickId: ObjectId, picks: Array<
             }
         }
 
+        // Set points
         for(const placedBet of pickData.placedBets) {
             let points = 0;
             for(const pickedTeam of placedBet.pickedTeams) {
@@ -58,17 +63,49 @@ export default async function declarePickWinners(pickId: ObjectId, picks: Array<
                 }
             }
 
-            await Pick.findOneAndUpdate(placedBet._id, {
-                points
+            await Pick.updateOne({ 'placedBets._id': placedBet._id }, {
+                'placedBets.$.points': points
             });
         }
 
+        // TODO: Test multiple games
+        // Update win amounts (get win amount) -> send to fee wallet
+        const topPoints = await Pick.aggregate([
+            { 
+                $match: { _id: pickId }
+            },
+            { "$addFields": {
+              "sortPoints": { "$max": "$placedBets.points" }
+            }},
+            { "$sort": { "sortPoints": -1 }}
+        ]);
+
+        if(!topPoints || topPoints.length === 0 || !(topPoints[0].sortPoints)) {
+            throw new ServerError("Could not find highest score")
+        }
+
+        const highestScore = topPoints[0].sortPoints;
+
+        // set winAmount split between length of winningBets
+        const winningBets = await Pick.find({ "_id": pickId, "placedBets.points": highestScore }, { "placedBets.$": 1 });
+        
+        let winAmount = (pickData.totalSpent / winningBets.length) * PICKEM_FEE_MULTIPLIER;
+        winAmount = Math.floor(winAmount * PAYOUT_PRECISION) / PAYOUT_PRECISION;
+
+        for(const winningBet of winningBets) {
+            const placedBetId = winningBet.placedBets[0]._id;
+            await Pick.updateOne({ 'placedBets._id': placedBetId }, {
+                'placedBets.$.winAmount': winAmount
+            });
+        }
+        
         await Pick.findByIdAndUpdate(pickId, { 'status': 'completed' })
 
         LOGTAIL.info(`Delcared winners for pick ${pickId}`)
 
         return true;
     } catch (err) {
+        console.log(err)
         LOGTAIL.error(`Error declaring ${pickId} winners ${err}`)
 
         if(err instanceof ServerError) return err;
