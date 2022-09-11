@@ -11,6 +11,8 @@ const app = express();
 const port = process.env.PORT || 3001;
 
 const CORS_ORIGIN = process.env.ORIGIN as string || 'http://localhost:3000';
+
+const SECRET = process.env.SECRET;
  
 /* THOUGHTS:
 - use cloudflare
@@ -71,9 +73,20 @@ send feeeees! - DONE
   ^ cluster op in env
 
   TOOD: Test on postman
+
+
+  TODO:
+  set loser amounts to -1
+  add special key to access protected (ADD BACK AUTH TO PROTECTED)
+  airdrop?
 */
 
+// TODO: Add bearer token
 const authorization = (req: express.Request, res: express.Response, next: express.NextFunction) => {
+    if(SECRET && req.headers?.secret === SECRET) {
+      return next();
+    }
+
     const token = req.cookies.access_token;
     if (!token) {
       return res.sendStatus(403);
@@ -103,12 +116,7 @@ const authorization = (req: express.Request, res: express.Response, next: expres
     app.use('/api', apiRoute);
 
     // Protected api
-    // app.use('/protected', authorization, protectedRoute);
-
-    // TODO REMOVE:
-
-    app.use('/protected', protectedRoute);
-    
+    app.use('/protected', authorization, protectedRoute);
 
     const server = app.listen(port, () => {
         console.log(`Example app listening on port ${port}`)

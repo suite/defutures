@@ -55,11 +55,11 @@ export default async function declarePickWinners(pickId: ObjectId, picks: Array<
             for(const pickedTeam of placedBet.pickedTeams) {
                 const pickedTeamData = teamData[JSON.stringify(pickedTeam)]
 
-                if(pickedTeamData.winner) points = points + 1;
+                if(pickedTeamData.winner) points = points + 1000; // weight winner points more
 
                 if(pickedTeamData.totalScore) {
                     const tieBreakerPoints = pickedTeamData.totalScore - (Math.abs(pickedTeamData.totalScore - placedBet.tieBreaker))
-                    points = points + tieBreakerPoints;
+                    // points = points + tieBreakerPoints;
                 }
             }
 
@@ -92,13 +92,15 @@ export default async function declarePickWinners(pickId: ObjectId, picks: Array<
         let winAmount = (pickData.totalSpent / winningBets.length) * PICKEM_FEE_MULTIPLIER;
         winAmount = Math.floor(winAmount * PAYOUT_PRECISION) / PAYOUT_PRECISION;
 
+        // TODO: scuffed
+
         for(const winningBet of winningBets) {
             const placedBetId = winningBet.placedBets[0]._id;
             await Pick.updateOne({ 'placedBets._id': placedBetId }, {
                 'placedBets.$.winAmount': winAmount
             });
         }
-        
+
         await Pick.findByIdAndUpdate(pickId, { 'status': 'completed' })
 
         LOGTAIL.info(`Delcared winners for pick ${pickId}`)
