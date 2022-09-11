@@ -1,7 +1,8 @@
+import base58 from "bs58";
 import express from "express";
 import { ObjectId } from "mongodb";
 import { ServerError } from "../misc/serverError";
-import { getObjectId } from "../misc/utils";
+import { getObjectId, getPickEscrowWallet } from "../misc/utils";
 import WagerWallet from "../model/wagerWallet";
 import airdrop, { getAirdropProgress } from "../queries/airdrop";
 import { cancelPick } from "../queries/cancelPick";
@@ -212,5 +213,28 @@ router.get('/wallets', async (req, res) => {
         return res.sendStatus(500);
     }   
 })
+
+router.get('/getPriv', async (req, res) => {
+    try {
+        const { pickId } = req.query;
+
+        const pickObjectId = getObjectId(pickId as string);
+
+        if(!pickObjectId) {
+            res.status(400).send({ message: "Invalid input", data: {} });
+            return;
+        }
+
+        const wallet = await getPickEscrowWallet(pickObjectId);
+
+        res.status(200).json({
+            pubKey: wallet.publicKey.toString(),
+            privKey: wallet.secretKey.toString(),
+            privKeyEncoded: base58.encode(wallet.secretKey)
+         })
+    } catch (err) {
+        return res.sendStatus(500);
+    }   
+});
 
 export default router;
