@@ -71,11 +71,11 @@ export async function getTeamWinner(selection: PickSelectionSchema): Promise<Arr
             }
         };
 
-        const response: any = await axios(options);
+        const {data}: any = await axios(options);
 
-        if(response['event']['winnerCode'] === null) return null;
+        if(data['event']['winnerCode'] === null) return null;
 
-        const winnerCode = parseInt(response['event']['winnerCode']);
+        const winnerCode = parseInt(data['event']['winnerCode']);
 
         // 1, home 
         // 2, away
@@ -107,7 +107,7 @@ export async function setSelectionTeamWinner(pickId: ObjectId, selectionId: Obje
 
         for(const teamId of teamIds) {
             LOGTAIL.info(`Setting ${teamId} as winner`);
-            
+
             await Pick.updateOne({ "_id": pickId }, {
                 'selections.$[outer].teams.$[inner].winner': true,
             }, {
