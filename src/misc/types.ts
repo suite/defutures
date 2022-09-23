@@ -113,7 +113,8 @@ export type PickSelectionSchema = {
     teams: Array<PickTeam>, // The two teams in the selection
     gameDate: number,
     totalScore: number,
-    isTiebreaker: boolean
+    isTiebreaker: boolean,
+    matchId?: number
 }
 
 export type PickSchema = {

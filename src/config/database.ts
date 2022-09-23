@@ -4,11 +4,12 @@ const { MONGO_URL } = process.env;
 import Agenda, { Job } from "agenda";
 import { Connection, Keypair, PublicKey, clusterApiUrl, Cluster } from "@solana/web3.js";
 import createWagerEscrows from "../queries/createWagerEscrows";
-import { WagerSchema } from "../misc/types";
+import { PickSchema, WagerSchema } from "../misc/types";
 import findMissingEscrowTransactions from "../queries/findMissingEscrowTransactions";
 import Wager from '../model/wager';
 import Pick from '../model/pick'
 import { Logtail } from "@logtail/node";
+import { getTeamWinner, setSelectionTeamWinner } from "../misc/utils";
 
 // TODO: Better is dev check, move logtail to env, new for dev
 export const IS_DEV = process.env.HEROKU ? false : true;
@@ -36,6 +37,8 @@ export const ALGORITHM = "aes-192-cbc";
 export const SALT = process.env.SALT as string;
 export const KEY = process.env.KEY as string;
 
+export const RAPID_API = process.env.RAPID_API as string;
+
 // Change token type based  off cluster/clusterurl
 // Dust mint: DUSTawucrTsGU8hcqRdHDCbuYhCPADMLM2VcCb8VnFnQ
 export const TOKEN_MINT = new PublicKey(process.env.TOKEN_MINT as string)
@@ -50,6 +53,9 @@ export const connectMongo = async () => {
 
     // Checks for live games and searches for missing txs
     await AGENDA.every("15 minutes", "check transactions");
+
+    // Update pickem winners
+    await AGENDA.every("60 minutes", "check winners");
 
   } catch (err) {
     console.log("database connection failed. exiting now...");
@@ -125,4 +131,20 @@ AGENDA.define("check transactions", async (job: Job) => {
           }
       }
   }
+});
+
+AGENDA.define("check winners", async (job: Job) => {
+    const livePicks: Array<PickSchema> | null = await Pick.find({ status: 'closed' });
+    
+    LOGTAIL.info(`Running check winners on ${livePicks.length} closed pickems.`);
+
+    for(const pick of livePicks) {
+        for(const selection of pick.selections) {
+            const winningTeams = await getTeamWinner(selection);
+            if(winningTeams === null) continue;
+            
+            await setSelectionTeamWinner(pick._id, selection._id, winningTeams);
+        }
+    }
+
 })
