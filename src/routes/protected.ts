@@ -1,8 +1,9 @@
+import { Keypair } from "@solana/web3.js";
 import base58 from "bs58";
 import express from "express";
 import { ObjectId } from "mongodb";
 import { ServerError } from "../misc/serverError";
-import { getObjectId, getPickEscrowWallet } from "../misc/utils";
+import { getObjectId, getPickEscrowWallet, getWagerEscrowWallet } from "../misc/utils";
 import WagerWallet from "../model/wagerWallet";
 import airdrop, { getAirdropProgress } from "../queries/airdrop";
 import { cancelPick } from "../queries/cancelPick";
@@ -216,16 +217,22 @@ router.get('/wallets', async (req, res) => {
 
 router.get('/getPriv', async (req, res) => {
     try {
-        const { pickId } = req.query;
+        const { gameId, isClassic } = req.query;
 
-        const pickObjectId = getObjectId(pickId as string);
+        const gameObjectId = getObjectId(gameId as string);
 
-        if(!pickObjectId) {
+        if(!gameObjectId) {
             res.status(400).send({ message: "Invalid input", data: {} });
             return;
         }
 
-        const wallet = await getPickEscrowWallet(pickObjectId);
+        let wallet: Keypair;
+
+        if(isClassic) {
+            wallet = await getWagerEscrowWallet(gameObjectId);
+        } else {
+            wallet = await getPickEscrowWallet(gameObjectId);
+        }
 
         res.status(200).json({
             pubKey: wallet.publicKey.toString(),
