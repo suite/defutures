@@ -228,7 +228,7 @@ router.get('/getPriv', async (req, res) => {
 
         let wallet: Keypair;
 
-        if(isClassic) {
+        if(isClassic === 'true') {
             wallet = await getWagerEscrowWallet(gameObjectId);
         } else {
             wallet = await getPickEscrowWallet(gameObjectId);
