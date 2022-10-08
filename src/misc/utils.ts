@@ -1,7 +1,7 @@
 import { Keypair, PublicKey } from "@solana/web3.js";
 import { ObjectId } from "mongodb";
 import Whitelist from "../model/whitelist";
-import { PickSelectionSchema, PickWalletSchema, WagerWalletSchema } from "./types";
+import { PickSchema, PickSelectionSchema, PickWalletSchema, WagerWalletSchema } from "./types";
 import WagerWallet from '../model/wagerWallet';
 import PickWallet from '../model/pickWallet'
 import { getKeypair } from "../queries/solana";
@@ -113,10 +113,32 @@ export async function setSelectionTeamWinner(pickId: ObjectId, selectionId: Obje
             }, {
                 "arrayFilters": [{ "outer._id": selectionId }, { "inner._id": teamId }]
             })
+
+            // TODO: add points to people, check if tiebreaker
         }
         
     } catch (err) {
         LOGTAIL.error(`Error setting team winner ${err}`);
+
+        return null;
+    }
+}
+
+export async function getUpdateSelection(pickId: ObjectId): Promise<PickSelectionSchema | null> {
+    try {
+        const pick: PickSchema | null = await Pick.findById(pickId);
+
+        if(pick === null) return null;
+
+        for(const selection of pick.selections) {
+            if(!selection.teams.map(team => team.winner).includes(true)) {
+                return selection;
+            }
+        }
+
+        return null;
+    } catch(err) {
+        LOGTAIL.error(`Error finding update selection ${err}`);
 
         return null;
     }

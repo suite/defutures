@@ -9,7 +9,7 @@ import findMissingEscrowTransactions from "../queries/findMissingEscrowTransacti
 import Wager from '../model/wager';
 import Pick from '../model/pick'
 import { Logtail } from "@logtail/node";
-import { getTeamWinner, setSelectionTeamWinner } from "../misc/utils";
+import { getTeamWinner, getUpdateSelection, setSelectionTeamWinner } from "../misc/utils";
 
 // TODO: Better is dev check, move logtail to env, new for dev
 export const IS_DEV = process.env.HEROKU ? false : true;
@@ -139,11 +139,14 @@ AGENDA.define("check winners", async (job: Job) => {
     LOGTAIL.info(`Running check winners on ${livePicks.length} closed pickems.`);
 
     for(const pick of livePicks) {
-        for(const selection of pick.selections) {
-            const winningTeams = await getTeamWinner(selection);
-            if(winningTeams === null) continue;
-            
-            await setSelectionTeamWinner(pick._id, selection._id, winningTeams);
+        // get selection 
+        const updateSelection = await getUpdateSelection(pick._id);
+
+        if(updateSelection !== null) {
+          const winningTeams = await getTeamWinner(updateSelection);
+          if(winningTeams === null) continue;
+          
+          await setSelectionTeamWinner(pick._id, updateSelection._id, winningTeams);
         }
     }
 
