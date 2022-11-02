@@ -1,4 +1,5 @@
 .env
 node_modules
 build
-src/misc/pickDataParser.ts
+src/misc/tools
+pickem_results

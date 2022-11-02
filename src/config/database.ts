@@ -146,7 +146,7 @@ AGENDA.define("check winners", async (job: Job) => {
           const winningTeams = await getTeamWinner(updateSelection);
           if(winningTeams === null) continue;
           
-          await setSelectionTeamWinner(pick._id, updateSelection._id, winningTeams);
+          await setSelectionTeamWinner(pick._id, updateSelection, winningTeams);
         }
     }
 
