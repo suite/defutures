@@ -13,6 +13,7 @@ import getUserWager from "../queries/getUserWager";
 import { PickSchema, WagerSchema } from "../misc/types";
 import getUserPick from "../queries/getUserPick";
 import placePick from "../queries/placePick";
+import { getPickemLeaderboard } from "../queries/leaderboard";
 
 const router = express.Router();
 
@@ -199,6 +200,20 @@ router.post('/getUserPick', async (req, res) => {
     }
 
     res.status(200).json({ message: "Fetched user pick", data: result })
+})
+
+router.get('/leaderboard', async (req, res) => {
+    const { pickId} = req.query;
+
+    const pickObjectId = getObjectId(pickId);
+
+    const result = await getPickemLeaderboard(pickObjectId);
+
+    if(result instanceof ServerError) {
+        return res.status(400).json({ message: result.message, data: result }) 
+    }
+
+    res.status(200).json({ message: "Fetched leaderboard", data: result })
 })
 
 export default router;

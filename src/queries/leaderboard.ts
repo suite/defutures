@@ -4,7 +4,14 @@ import { LOGTAIL } from "../config/database";
 import { ServerError } from "../misc/serverError";
 import { PickBetSchema, PickSchema } from "../misc/types";
 
-export async function getPickemLeaderboard(pickId?: ObjectId): Promise<ServerError | Array<PickBetSchema>> {
+type SeasonLeaderboard = {
+    [key: string]: {
+        points: number;
+        gamesPlayed: number;
+    };
+}
+
+export async function getPickemLeaderboard(pickId?: ObjectId | null): Promise<ServerError | Array<PickBetSchema> | SeasonLeaderboard> {
     // pickem:
     // particular week 
     //  scorecard, tiebreaker
@@ -13,7 +20,7 @@ export async function getPickemLeaderboard(pickId?: ObjectId): Promise<ServerErr
     
 
     try {
-        if(pickId) {
+        if(pickId !== null) {
             const pick: PickSchema | null = await Pick.findById(pickId);
 
             if(!pick) throw new ServerError("Unable to query pick.");
@@ -33,7 +40,7 @@ export async function getPickemLeaderboard(pickId?: ObjectId): Promise<ServerErr
         }
 
         // total points for each publicKey + number of games played by user
-        const leaderboard: { [key: string]: { points: number, gamesPlayed: number } } = {};
+        const leaderboard: SeasonLeaderboard = {};
         for(const placedBet of placedBets) {
             if(leaderboard[placedBet.publicKey]) {
                 leaderboard[placedBet.publicKey].points = leaderboard[placedBet.publicKey].points + placedBet.points;
@@ -47,7 +54,7 @@ export async function getPickemLeaderboard(pickId?: ObjectId): Promise<ServerErr
         }
         
 
-        return new ServerError("Internal error has occured.");
+        return leaderboard;
     } catch (err) {
         LOGTAIL.error(`Error getting leaderboard ${err}`)
 

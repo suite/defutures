@@ -55,7 +55,7 @@ export async function getPickEscrowWallet(pickId: ObjectId): Promise<Keypair> {
 }
 
 
-export function getObjectId(id: string): ObjectId | null {
+export function getObjectId(id: any): ObjectId | null {
     try {
         return new ObjectId(id)
     } catch (err) {
