@@ -30,11 +30,12 @@ const placedBet = new mongoose.Schema({
     publicKey: { type: String },
     pickedTeams: { type: [ mongoose.Schema.Types.ObjectId ] },
     tieBreaker: { type: Number, default: 0 },
+    tieBreakerPoints: { type: Number, default: 0 },
     nickname: { type: String, default: '' },
     winAmount: { type: Number, default: 0 },
     amounts: { type: [betAmount], default: [] },
     transferData: { type: transferData, default: { error: 0 } },
-    points: { type: Number, default: 0}
+    points: { type: Number, default: 0},
 });
 
 // pickSelection

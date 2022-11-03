@@ -101,6 +101,7 @@ export type PickBetSchema = {
     publicKey: string,
     pickedTeams: Array<ObjectId>,
     tieBreaker: number,
+    tieBreakerPoints: number,
     nickname: string,
     winAmount: number,
     amounts: Array<WagerBetAmountSchema>,

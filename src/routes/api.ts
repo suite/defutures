@@ -203,9 +203,9 @@ router.post('/getUserPick', async (req, res) => {
 })
 
 router.get('/leaderboard', async (req, res) => {
-    const { pickId} = req.query;
+    const { pickId } = req.query;
 
-    const pickObjectId = getObjectId(pickId);
+    const pickObjectId = (pickId) ? getObjectId(pickId as string) : null;
 
     const result = await getPickemLeaderboard(pickObjectId);
 

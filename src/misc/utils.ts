@@ -12,7 +12,7 @@ import Pick from '../model/pick';
 
 type PickemTeamWinner = {
     selectionId: ObjectId,
-    score: number
+    totalScore: number
 }
 
 export function isValidPubKey(pubKey: string): boolean {
@@ -55,7 +55,7 @@ export async function getPickEscrowWallet(pickId: ObjectId): Promise<Keypair> {
 }
 
 
-export function getObjectId(id: any): ObjectId | null {
+export function getObjectId(id: string): ObjectId | null {
     try {
         return new ObjectId(id)
     } catch (err) {
@@ -84,6 +84,8 @@ export async function getTeamWinner(selection: PickSelectionSchema): Promise<Arr
         const homeScore = parseInt(data['event']['homeScore']['current']);
         const awayScore = parseInt(data['event']['awayScore']['current']);
 
+        const totalScore = homeScore + awayScore;
+
         // 1, home 
         // 2, away
         // 3, tie
@@ -93,20 +95,20 @@ export async function getTeamWinner(selection: PickSelectionSchema): Promise<Arr
         // Home team won, second team
         if(winnerCode === 1) return [{ 
             selectionId: selection.teams[1]._id,
-            score: homeScore
+            totalScore
         }];
         
         // Away team won, first time
         if(winnerCode === 2) return [{ 
             selectionId: selection.teams[0]._id, 
-            score: awayScore
+            totalScore
         }];
 
         // Ties, both "win"
         if(winnerCode === 3) {
             return selection.teams.map(team => (
-                { selectionId: team._id, score: homeScore }
-                ));
+                { selectionId: team._id, totalScore }
+            ));
         }
 
         return null;
@@ -138,22 +140,29 @@ export async function setSelectionTeamWinner(pickId: ObjectId, selection: PickSe
             }
 
             for(const placedBet of pickData.placedBets) {
+                let newPoints = placedBet.points;
+                let tieBreakerPoints = 0;
+                
+                // If the pick is on the winning team, add 100 points
                 if(placedBet.pickedTeams.map(team => team.toString()).includes(teamWinner.selectionId.toString())) {
-                    const currentScore = placedBet.points;
-                    let newScore = currentScore + 10000;
+                    newPoints += 1000;
+                }
 
-                    if(selection.isTiebreaker) {
-                        const tieBreakerPoints = teamWinner.score - Math.abs(teamWinner.score - placedBet.tieBreaker);
-                        newScore += tieBreakerPoints;
+                // If tiebreaker, add tiebreakerpoints
+                if(selection.isTiebreaker) {
+                    tieBreakerPoints += teamWinner.totalScore - Math.abs(teamWinner.totalScore - placedBet.tieBreaker);
+                }
+
+                if(newPoints !== placedBet.points || tieBreakerPoints !== placedBet.tieBreakerPoints) {
+                    const updateOpts = {
+                        'placedBets.$[outer].points': newPoints,
+                        'placedBets.$[outer].tieBreakerPoints': tieBreakerPoints
                     }
 
-                    await Pick.updateOne({ "_id": pickId }, {
-                        'placedBets.$[outer].points': newScore
-                    }, {
+                    await Pick.updateOne({ "_id": pickId }, updateOpts, {
                         "arrayFilters": [{ "outer._id": placedBet._id }]
                     });
                 }
-
             }
         }
         
