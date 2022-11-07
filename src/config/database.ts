@@ -55,7 +55,7 @@ export const connectMongo = async () => {
     await AGENDA.every("15 minutes", "check transactions");
 
     // Update pickem winners
-    await AGENDA.every("60 minutes", "check winners");
+    await AGENDA.every("10 minutes", "check winners");
 
   } catch (err) {
     console.log("database connection failed. exiting now...");
