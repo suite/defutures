@@ -133,3 +133,10 @@ export type PickSchema = {
     selections: Array<PickSelectionSchema>,
     placedBets: Array<PickBetSchema>
 }
+
+export type StatsSchema = {
+    _id: ObjectId,
+    gameHosted: number,
+    uniquePlayers: number,
+    totalVolume: number,
+}

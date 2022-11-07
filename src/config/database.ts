@@ -9,7 +9,7 @@ import findMissingEscrowTransactions from "../queries/findMissingEscrowTransacti
 import Wager from '../model/wager';
 import Pick from '../model/pick'
 import { Logtail } from "@logtail/node";
-import { getTeamWinner, getUpdateSelection, setSelectionTeamWinner } from "../misc/utils";
+import { getTeamWinner, getUpdateSelection, setSelectionTeamWinner, updateStats } from "../misc/utils";
 
 // TODO: Better is dev check, move logtail to env, new for dev
 export const IS_DEV = process.env.HEROKU ? false : true;
@@ -57,6 +57,8 @@ export const connectMongo = async () => {
     // Update pickem winners
     await AGENDA.every("10 minutes", "check winners");
 
+     // Update stats
+     await AGENDA.every("5 minutes", "update stats");
   } catch (err) {
     console.log("database connection failed. exiting now...");
     console.error(err);
@@ -150,4 +152,10 @@ AGENDA.define("check winners", async (job: Job) => {
         }
     }
 
+})
+
+AGENDA.define("update stats", async (job: Job) => {
+    LOGTAIL.info("Updating stats");
+
+    await updateStats();
 })

@@ -1,7 +1,7 @@
 import { Keypair, PublicKey } from "@solana/web3.js";
 import { ObjectId } from "mongodb";
 import Whitelist from "../model/whitelist";
-import { PickBetSchema, PickSchema, PickSelectionSchema, PickWalletSchema, WagerWalletSchema } from "./types";
+import { PickBetSchema, PickSchema, PickSelectionSchema, PickWalletSchema, WagerSchema, WagerWalletSchema } from "./types";
 import WagerWallet from '../model/wagerWallet';
 import PickWallet from '../model/pickWallet'
 import { getKeypair } from "../queries/solana";
@@ -9,6 +9,8 @@ import { ServerError } from "./serverError";
 import axios, { Method } from "axios";
 import { LOGTAIL, RAPID_API } from "../config/database";
 import Pick from '../model/pick';
+import Wager from '../model/wager';
+import Stats from '../model/stats';
 
 type PickemTeamWinner = {
     selectionId: ObjectId,
@@ -190,5 +192,55 @@ export async function getUpdateSelection(pickId: ObjectId): Promise<PickSelectio
         LOGTAIL.error(`Error finding update selection ${err}`);
 
         return null;
+    }
+}
+
+export async function updateStats(): Promise<boolean> {
+    try {
+        const wagers: Array<WagerSchema> = await Wager.find({});
+        const picks: Array<PickSchema> = await Pick.find({});
+
+        let totalVol = 0;
+        let totalGames = wagers.length + picks.length;
+        let users = new Set();
+
+        wagers.forEach(wager => {
+            totalVol += wager.selections[0].totalSpent;
+            totalVol += wager.selections[1].totalSpent;
+
+            wager.placedBets.forEach(placedBet => {
+                users.add(placedBet.publicKey);
+            })
+        });
+
+        picks.forEach(pick => {
+            totalVol += pick.totalSpent;
+
+            pick.placedBets.forEach(placedBet => {
+                users.add(placedBet.publicKey);
+            });
+        });
+
+        const stats = await Stats.findOne({});
+
+        if(stats === null) {
+            await Stats.create({
+                gamesHosted: totalGames,
+                uniquePlayers: users.size,
+                totalVolume: totalVol
+            });
+        } else {
+            await Stats.updateOne({}, {
+                gamesHosted: totalGames,
+                uniquePlayers: users.size,
+                totalVolume: totalVol
+            });
+        }
+
+        return true;
+    } catch (err) {
+        LOGTAIL.error(`Error updating stats ${err}`);
+
+        return false;
     }
 }

@@ -14,6 +14,7 @@ import { PickSchema, WagerSchema } from "../misc/types";
 import getUserPick from "../queries/getUserPick";
 import placePick from "../queries/placePick";
 import { getPickemLeaderboard } from "../queries/leaderboard";
+import Stats from "../model/stats";
 
 const router = express.Router();
 
@@ -214,6 +215,16 @@ router.get('/leaderboard', async (req, res) => {
     }
 
     res.status(200).json({ message: "Fetched leaderboard", data: result })
+})
+
+router.get('/stats', async (req, res) => {
+    try {
+        const stats = await Stats.findOne({});
+
+        res.status(200).json({ message: "Fetched stats", data: stats });
+    } catch(err) {
+        return res.status(400).json({ message: "Error fetching stats", data: {} }) 
+    }
 })
 
 export default router;
