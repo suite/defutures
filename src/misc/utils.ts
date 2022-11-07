@@ -133,7 +133,7 @@ export async function setSelectionTeamWinner(pickId: ObjectId, selection: PickSe
 
             LOGTAIL.info(`Set ${teamWinner.selectionId} as winner`);
 
-            const pickData: PickSchema | null = await Pick.findById(pickId, { "placedBets.$": 1 });
+            const pickData: PickSchema | null = await Pick.findById(pickId);
 
             if(pickData === null) {
                 throw new ServerError("Could not find placed bets.");
