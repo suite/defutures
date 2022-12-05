@@ -106,8 +106,10 @@ export async function getTeamWinner(selection: PickSelectionSchema): Promise<Arr
             totalScore
         }];
 
+        const isTie = (homeScore === awayScore && data['event']['status']['type'] === 'finished');
+
         // Ties, both "win"
-        if(winnerCode === 3) {
+        if(isTie) {
             return selection.teams.map(team => (
                 { selectionId: team._id, totalScore }
             ));
