@@ -11,7 +11,7 @@ import Pick from '../model/pick'
 import { Logtail } from "@logtail/node";
 import { getTeamWinner, getUpdateSelection, setSelectionTeamWinner, updateStats } from "../misc/utils";
 import passport from "passport";
-import { Strategy } from "passport-twitter";
+const TwitterStrategy = require("@superfaceai/passport-twitter-oauth2").Strategy;
 
 export const PASSPORT_SECRET = process.env.PASSPORT_SECRET!;
 
@@ -72,24 +72,44 @@ export const connectMongo = async () => {
 
 // Init twitter oauth
 // TODO: Check for env vars
-passport.use(new Strategy({
-    consumerKey: process.env.TWIT_API_KEY as string,
-    consumerSecret: process.env.TWIT_SECRET as string,
-    callbackURL: process.env.TWITTER_CALLBACK_URL as string
-  }, async (token, tokenSecret, profile, done) => {
-    // TODO: Associate with user's public key
-    return done(null, profile);
-  }
-));
-  
+
+// consumerKey: process.env.TWIT_API_KEY as string,
+// consumerSecret: process.env.TWIT_API_SECRET as string,
+// callbackURL: process.env.TWITTER_CALLBACK_URL as string
+
+
+// passport.use(new TwitterStrategy({
+//     clientType: "public",
+//     clientID: process.env.TWIT_CLIENT_ID!,
+//     clientSecret: process.env.TWIT_CLIENT_SECRET!
+//   }, function (accessToken: any, refreshToken: any, profile: any, done: any) {
+//     // TODO: Associate with user's public key
+//     return done(null, profile);
+//   }
+// ));
+
+passport.use(new TwitterStrategy({
+    clientType: "confidential",
+    clientID: process.env.TWIT_CLIENT_ID!,
+    clientSecret: process.env.TWIT_CLIENT_SECRET!,
+    callbackURL: process.env.TWITTER_CALLBACK_URL!,
+    }, (accessToken: any, refreshToken: any, profile: any, done: any) => {
+      console.log('Success!', { accessToken, refreshToken, profile });
+      return done(null, profile);
+    }
+  )
+);
+
+      
+
 // TODO: Implement
 passport.serializeUser(function(user, cb) {
   cb(null, user);
 });
 
 // TODO: Implement
-passport.deserializeUser(function(obj, cb) {
-  cb(null, null);
+passport.deserializeUser(function(obj: any, cb) {
+  cb(null, obj);
 });
 
 // pretty sure agenda handles errors

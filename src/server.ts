@@ -5,6 +5,7 @@ import cookieParser from "cookie-parser";
 import { connectMongo, KEY, PASSPORT_SECRET } from './config/database';
 import apiRoute from './routes/api';
 import protectedRoute from './routes/protected';
+import oauthRoute from './routes/oauth';
 import jwt from 'jsonwebtoken';
 import passport from "passport";
 
@@ -122,6 +123,9 @@ const authorization = (req: express.Request, res: express.Response, next: expres
 
     // Protected api
     app.use('/protected', authorization, protectedRoute);
+
+    // Oauth
+    app.use('/oauth', oauthRoute);
 
     const server = app.listen(port, () => {
         console.log(`Example app listening on port ${port}`)
