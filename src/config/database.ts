@@ -10,6 +10,10 @@ import Wager from '../model/wager';
 import Pick from '../model/pick'
 import { Logtail } from "@logtail/node";
 import { getTeamWinner, getUpdateSelection, setSelectionTeamWinner, updateStats } from "../misc/utils";
+import passport from "passport";
+import { Strategy } from "passport-twitter";
+
+export const PASSPORT_SECRET = process.env.PASSPORT_SECRET!;
 
 // TODO: Better is dev check, move logtail to env, new for dev
 export const IS_DEV = process.env.HEROKU ? false : true;
@@ -65,6 +69,28 @@ export const connectMongo = async () => {
     process.exit(1);
   }
 };
+
+// Init twitter oauth
+// TODO: Check for env vars
+passport.use(new Strategy({
+    consumerKey: process.env.TWIT_API_KEY as string,
+    consumerSecret: process.env.TWIT_SECRET as string,
+    callbackURL: process.env.TWITTER_CALLBACK_URL as string
+  }, async (token, tokenSecret, profile, done) => {
+    // TODO: Associate with user's public key
+    return done(null, profile);
+  }
+));
+  
+// TODO: Implement
+passport.serializeUser(function(user, cb) {
+  cb(null, user);
+});
+
+// TODO: Implement
+passport.deserializeUser(function(obj, cb) {
+  cb(null, null);
+});
 
 // pretty sure agenda handles errors
 AGENDA.define("update status", async (job: Job) => {

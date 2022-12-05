@@ -2,10 +2,11 @@ require("dotenv").config();
 import express, { NextFunction, Request, Response } from "express";
 import cors from 'cors';
 import cookieParser from "cookie-parser";
-import { connectMongo, KEY } from './config/database';
+import { connectMongo, KEY, PASSPORT_SECRET } from './config/database';
 import apiRoute from './routes/api';
 import protectedRoute from './routes/protected';
 import jwt from 'jsonwebtoken';
+import passport from "passport";
 
 const app = express();
 const port = process.env.PORT || 3001;
@@ -81,7 +82,6 @@ send feeeees! - DONE
   airdrop?
 */
 
-// TODO: Add bearer token
 const authorization = (req: express.Request, res: express.Response, next: express.NextFunction) => {
     if(SECRET && req.headers?.secret === SECRET) {
       return next();
@@ -111,6 +111,11 @@ const authorization = (req: express.Request, res: express.Response, next: expres
     app.use(express.json());
     app.use(cors(corsOpts));
     app.use(cookieParser());
+
+    // Passportjs setup
+    app.use(require('express-session')({ secret: PASSPORT_SECRET, resave: false, saveUninitialized: false }));
+    app.use(passport.initialize());
+    app.use(passport.session());
 
     // Public api
     app.use('/api', apiRoute);
