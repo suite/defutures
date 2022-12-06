@@ -1,5 +1,8 @@
 import express from "express";
 import passport from "passport";
+import jwt, { JwtPayload } from 'jsonwebtoken';
+import { KEY } from "../config/database";
+import User from '../model/user';
 
 const router = express.Router();
 
@@ -10,37 +13,113 @@ router.get("/login/twitter", passport.authenticate("twitter", { scope: SCOPES })
 
 router.get("/callback/twitter", 
     passport.authenticate('twitter', { failureRedirect: '/', assignProperty: 'twitterUser', scope: SCOPES}), 
-    (req: any, res, next) => {
+    async (req: any, res, next) => {
         console.log("Twitter user:", req.twitterUser);
 
-        req.login(req.twitterUser, (err: any) => {
-            if (err) {
-                return next(err);
+        // Make sure they have a wallet connected
+        const wallet_token = req.cookies.wallet_token;
+        if(!wallet_token) {
+            return res.redirect('/?state=No wallet connected');
+        }
+
+        // Ensure twitter profile has correct fields
+        if(!(req.twitterUser?.username && req.twitterUser?.displayName && req.twitterUser?.id)) {
+            return res.redirect('/?state=Invalid twitter data');
+        }
+
+        try {
+            const data = jwt.verify(wallet_token, KEY);
+            console.log("WALLET TOKEN DETECTED", data);
+
+            const publicKey = (data as any).publicKey;
+            if(!publicKey) {
+                throw new Error("Could not find public key");
             }
 
-            return res.redirect('/');
-        });
-});
+            // Update or create user with twitter data
+            const updatedDoc = await User.findOneAndUpdate({ publicKey }, { 
+                $set: {
+                    publicKey,
+                    twitterData: {
+                        id: req.twitterUser.id,
+                        username: req.twitterUser.username,
+                        displayName: req.twitterUser.displayName,
+                        profileImage: req.twitterUser.photos[0].value,
+                    }
+                }
+            }, { upsert: true, new: true });
 
-router.get("/logout", (req, res) => {
-    req.logout(err => {
-        if (err) {
-            console.error("Error logging out", err);
+            console.log("Updated doc:", updatedDoc);
+
+            // Do we even need this?
+            req.login(req.twitterUser, (err: any) => {
+                if (err) {
+                    return next(err); // TODO: next or redirect?
+                }   
+    
+                // TODO: Fix up
+                return res.redirect('http://localhost:3000');
+            });
+
+        } catch(err) {
+            console.log(err);
+            return res.redirect('/?state=Invalid wallet token');
         }
-    });
-
-    res.redirect('/');
 });
 
-router.get("/status", (req, res) => {
-    if(req.user) {
-        res.status(200).json({ loggedIn: true });
-    } else {
-        res.status(200).json({ loggedIn: false });
+router.post("/logout/twitter", async (req, res) => {
+    try {
+        const loggedInWallet = getLoggedInWallet(req);
+
+        if(loggedInWallet === null) {
+            return res.sendStatus(403);
+        }
+
+        await User.findOneAndRemove({ publicKey: loggedInWallet });
+
+        req.logout(err => {
+            if (err) {
+                console.error("Error logging out", err);
+            }
+
+            
+            res.status(200).json({ success: true });
+        });
+    } catch (err) {
+        res.status(500).json({ success: false });
     }
-    console.log(req.user)
+});
+
+router.get("/status", async (req, res) => {
+    try {
+        const { publicKey } = req.query;
+
+        const user = await User.findOne({ publicKey });
+
+        if(!user) {
+            return res.sendStatus(404);
+        }
+
+        return res.json(user);
+    } catch (err) {
+        return res.sendStatus(500);
+    }
     
 });
+
+const getLoggedInWallet = (req: any): string | null => {
+    try {
+        const wallet_token = req.cookies.wallet_token;
+        const data = jwt.verify(wallet_token, KEY);
+        const publicKey = (data as any).publicKey;
+        if(!publicKey) {
+            throw new Error("Could not find public key");
+        }
+        return publicKey;
+    } catch (err) {
+        return null;
+    }
+}
 
 export default router;
 

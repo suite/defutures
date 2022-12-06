@@ -81,6 +81,11 @@ send feeeees! - DONE
   set loser amounts to -1
   add special key to access protected (ADD BACK AUTH TO PROTECTED)
   airdrop?
+
+
+  NEW TODO:
+  - clean up structure
+  - add eslint (always use " vs ')
 */
 
 const authorization = (req: express.Request, res: express.Response, next: express.NextFunction) => {
@@ -95,6 +100,8 @@ const authorization = (req: express.Request, res: express.Response, next: expres
 
     try {
       const data = jwt.verify(token, KEY);
+
+      console.log("PUBLIC KEY LOGIN DETECTED", data)
       
       return next();
     } catch {

@@ -1,13 +1,13 @@
 import bs58 from "bs58";
 import express from "express";
 import nacl from "tweetnacl";
-import { getObjectId, isValidPubKey, isWhitelisted } from "../misc/utils";
+import { confirmWalletSigned, getObjectId, isValidPubKey, isWhitelisted } from "../misc/utils";
 import Wager from "../model/wager";
 import Pick from "../model/pick";
 import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 import placeBet from "../queries/placeBet";
-import { KEY } from "../config/database";
+import { KEY, WALLET_SIGN_MESSAGE } from "../config/database";
 import { ServerError } from "../misc/serverError";
 import getUserWager from "../queries/getUserWager";
 import { PickSchema, WagerSchema } from "../misc/types";
@@ -42,6 +42,7 @@ router.post('/generateNonce', async (req, res) => {
     res.status(200).json({ nonce })
 })
 
+// TODO: Rename
 router.post('/login', async (req, res) => {
     const { publicKey, signedMessage } = req.body;
 
@@ -53,12 +54,8 @@ router.post('/login', async (req, res) => {
     }
 
     try {
-        const nonceUint8 = new TextEncoder().encode(nonces[publicKey]);
-        const signatureUint8 = Uint8Array.from(Buffer.from(signedMessage, 'hex'));
-        const pubKeyUint8 = bs58.decode(publicKey);
-    
-        const verified = nacl.sign.detached.verify(nonceUint8, signatureUint8, pubKeyUint8);
-        
+        const verified = confirmWalletSigned(nonces[publicKey], signedMessage, publicKey);
+
         if(!verified) {
             res.status(400).json({ verified: false })
             return;
@@ -75,7 +72,32 @@ router.post('/login', async (req, res) => {
     } catch (err) {
         res.status(400).json({ verified: false })
     }
-})
+});
+
+router.post('/confirmWallet', async (req, res) => {
+    const { publicKey, signedMessage } = req.body;
+
+    try {
+        const verified = confirmWalletSigned(WALLET_SIGN_MESSAGE, signedMessage, publicKey);
+
+        if(!verified) {
+            res.status(400).json({ verified: false })
+            return;
+        }
+
+        const token = jwt.sign({ publicKey }, KEY, { "expiresIn": "2h" });
+
+        res.cookie("wallet_token", token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: process.env.NODE_ENV === "production" ? 'none' : 'lax'
+        }).status(200).json({ verified });
+        
+    } catch (err) {
+        res.status(400).json({ verified: false });
+    }
+
+});
 
 router.get('/wagers', async (req, res) => {
     try {

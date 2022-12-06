@@ -15,6 +15,8 @@ const TwitterStrategy = require("@superfaceai/passport-twitter-oauth2").Strategy
 
 export const PASSPORT_SECRET = process.env.PASSPORT_SECRET!;
 
+export const WALLET_SIGN_MESSAGE = process.env.WALLET_SIGN_MESSAGE!;
+
 // TODO: Better is dev check, move logtail to env, new for dev
 export const IS_DEV = process.env.HEROKU ? false : true;
 export const LOGTAIL = new Logtail("Mv7iTABrBnrLdVoKkZiabnyG");
