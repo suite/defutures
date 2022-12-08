@@ -2,10 +2,12 @@ require("dotenv").config();
 import express, { NextFunction, Request, Response } from "express";
 import cors from 'cors';
 import cookieParser from "cookie-parser";
-import { connectMongo, KEY } from './config/database';
+import { connectMongo, KEY, PASSPORT_SECRET } from './config/database';
 import apiRoute from './routes/api';
 import protectedRoute from './routes/protected';
+import oauthRoute from './routes/oauth';
 import jwt from 'jsonwebtoken';
+import passport from "passport";
 
 const app = express();
 const port = process.env.PORT || 3001;
@@ -79,9 +81,13 @@ send feeeees! - DONE
   set loser amounts to -1
   add special key to access protected (ADD BACK AUTH TO PROTECTED)
   airdrop?
+
+
+  NEW TODO:
+  - clean up structure
+  - add eslint (always use " vs ')
 */
 
-// TODO: Add bearer token
 const authorization = (req: express.Request, res: express.Response, next: express.NextFunction) => {
     if(SECRET && req.headers?.secret === SECRET) {
       return next();
@@ -94,6 +100,8 @@ const authorization = (req: express.Request, res: express.Response, next: expres
 
     try {
       const data = jwt.verify(token, KEY);
+
+      console.log("PUBLIC KEY LOGIN DETECTED", data)
       
       return next();
     } catch {
@@ -112,11 +120,19 @@ const authorization = (req: express.Request, res: express.Response, next: expres
     app.use(cors(corsOpts));
     app.use(cookieParser());
 
+    // Passportjs setup
+    app.use(require('express-session')({ secret: PASSPORT_SECRET, resave: false, saveUninitialized: false }));
+    app.use(passport.initialize());
+    app.use(passport.session());
+
     // Public api
     app.use('/api', apiRoute);
 
     // Protected api
     app.use('/protected', authorization, protectedRoute);
+
+    // Oauth
+    app.use('/oauth', oauthRoute);
 
     const server = app.listen(port, () => {
         console.log(`Example app listening on port ${port}`)

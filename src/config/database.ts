@@ -10,6 +10,15 @@ import Wager from '../model/wager';
 import Pick from '../model/pick'
 import { Logtail } from "@logtail/node";
 import { getTeamWinner, getUpdateSelection, setSelectionTeamWinner, updateStats } from "../misc/utils";
+import passport from "passport";
+const TwitterStrategy = require("@superfaceai/passport-twitter-oauth2").Strategy;
+
+export const PASSPORT_SECRET = process.env.PASSPORT_SECRET!;
+
+export const WALLET_SIGN_MESSAGE_LOGIN = process.env.WALLET_SIGN_MESSAGE_LOGIN!;
+export const WALLET_SIGN_MESSAGE_LOGOUT = process.env.WALLET_SIGN_MESSAGE_LOGOUT!;
+
+export const OAUTH_REDIRECT_URL = process.env.OAUTH_REDIRECT_URL!;
 
 // TODO: Better is dev check, move logtail to env, new for dev
 export const IS_DEV = process.env.HEROKU ? false : true;
@@ -46,6 +55,8 @@ export const TOKEN_MINT = new PublicKey(process.env.TOKEN_MINT as string)
 export const connectMongo = async () => {
   // Connecting to the database
   try {
+    initTwitter();
+
     await mongoose.connect(MONGO_URL!)
     
     // Start
@@ -65,6 +76,30 @@ export const connectMongo = async () => {
     process.exit(1);
   }
 };
+
+
+// Init twitter oauth
+const initTwitter = () => {
+  passport.use(new TwitterStrategy({
+      clientType: "confidential",
+      clientID: process.env.TWIT_CLIENT_ID!,
+      clientSecret: process.env.TWIT_CLIENT_SECRET!,
+      callbackURL: process.env.TWITTER_CALLBACK_URL!,
+      }, (accessToken: any, refreshToken: any, profile: any, done: any) => {
+        return done(null, profile);
+      }
+    )
+  );
+
+      
+  passport.serializeUser(function(user, cb) {
+    cb(null, user);
+  });
+
+  passport.deserializeUser(function(obj: any, cb) {
+    cb(null, obj);
+  });
+}
 
 // pretty sure agenda handles errors
 AGENDA.define("update status", async (job: Job) => {

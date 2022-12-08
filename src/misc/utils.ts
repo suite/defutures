@@ -11,6 +11,8 @@ import { LOGTAIL, RAPID_API } from "../config/database";
 import Pick from '../model/pick';
 import Wager from '../model/wager';
 import Stats from '../model/stats';
+import bs58 from "bs58";
+import nacl from "tweetnacl";
 
 type PickemTeamWinner = {
     selectionId: ObjectId,
@@ -243,6 +245,20 @@ export async function updateStats(): Promise<boolean> {
     } catch (err) {
         LOGTAIL.error(`Error updating stats ${err}`);
 
+        return false;
+    }
+}
+
+export function confirmWalletSigned(nonce: string, signedMessage: string, publicKey: string): boolean {
+    try {
+        const nonceUint8 = new TextEncoder().encode(nonce);
+        const signatureUint8 = Uint8Array.from(Buffer.from(signedMessage, 'hex'));
+        const pubKeyUint8 = bs58.decode(publicKey);
+
+        const verified = nacl.sign.detached.verify(nonceUint8, signatureUint8, pubKeyUint8);
+
+        return verified;
+    } catch(err) {
         return false;
     }
 }
