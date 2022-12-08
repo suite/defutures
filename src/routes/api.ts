@@ -7,7 +7,7 @@ import Pick from "../model/pick";
 import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 import placeBet from "../queries/placeBet";
-import { KEY, WALLET_SIGN_MESSAGE } from "../config/database";
+import { KEY, WALLET_SIGN_MESSAGE_LOGIN, WALLET_SIGN_MESSAGE_LOGOUT } from "../config/database";
 import { ServerError } from "../misc/serverError";
 import getUserWager from "../queries/getUserWager";
 import { PickSchema, WagerSchema } from "../misc/types";
@@ -75,10 +75,11 @@ router.post('/login', async (req, res) => {
 });
 
 router.post('/confirmWallet', async (req, res) => {
-    const { publicKey, signedMessage } = req.body;
+    const { publicKey, signedMessage, isLogin } = req.body;
 
     try {
-        const verified = confirmWalletSigned(WALLET_SIGN_MESSAGE, signedMessage, publicKey);
+        const messageToSign = (isLogin === "true") ? WALLET_SIGN_MESSAGE_LOGIN : WALLET_SIGN_MESSAGE_LOGOUT;
+        const verified = confirmWalletSigned(messageToSign, signedMessage, publicKey);
 
         if(!verified) {
             res.status(400).json({ verified: false })
@@ -92,7 +93,7 @@ router.post('/confirmWallet', async (req, res) => {
             secure: process.env.NODE_ENV === "production",
             sameSite: process.env.NODE_ENV === "production" ? 'none' : 'lax'
         }).status(200).json({ verified });
-        
+
     } catch (err) {
         res.status(400).json({ verified: false });
     }

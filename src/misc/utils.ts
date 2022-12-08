@@ -7,7 +7,7 @@ import PickWallet from '../model/pickWallet'
 import { getKeypair } from "../queries/solana";
 import { ServerError } from "./serverError";
 import axios, { Method } from "axios";
-import { LOGTAIL, RAPID_API, WALLET_SIGN_MESSAGE } from "../config/database";
+import { LOGTAIL, RAPID_API } from "../config/database";
 import Pick from '../model/pick';
 import Wager from '../model/wager';
 import Stats from '../model/stats';

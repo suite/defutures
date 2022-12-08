@@ -15,7 +15,10 @@ const TwitterStrategy = require("@superfaceai/passport-twitter-oauth2").Strategy
 
 export const PASSPORT_SECRET = process.env.PASSPORT_SECRET!;
 
-export const WALLET_SIGN_MESSAGE = process.env.WALLET_SIGN_MESSAGE!;
+export const WALLET_SIGN_MESSAGE_LOGIN = process.env.WALLET_SIGN_MESSAGE_LOGIN!;
+export const WALLET_SIGN_MESSAGE_LOGOUT = process.env.WALLET_SIGN_MESSAGE_LOGOUT!;
+
+export const OAUTH_REDIRECT_URL = process.env.OAUTH_REDIRECT_URL!;
 
 // TODO: Better is dev check, move logtail to env, new for dev
 export const IS_DEV = process.env.HEROKU ? false : true;
@@ -52,6 +55,8 @@ export const TOKEN_MINT = new PublicKey(process.env.TOKEN_MINT as string)
 export const connectMongo = async () => {
   // Connecting to the database
   try {
+    initTwitter();
+
     await mongoose.connect(MONGO_URL!)
     
     // Start
@@ -72,47 +77,29 @@ export const connectMongo = async () => {
   }
 };
 
+
 // Init twitter oauth
-// TODO: Check for env vars
-
-// consumerKey: process.env.TWIT_API_KEY as string,
-// consumerSecret: process.env.TWIT_API_SECRET as string,
-// callbackURL: process.env.TWITTER_CALLBACK_URL as string
-
-
-// passport.use(new TwitterStrategy({
-//     clientType: "public",
-//     clientID: process.env.TWIT_CLIENT_ID!,
-//     clientSecret: process.env.TWIT_CLIENT_SECRET!
-//   }, function (accessToken: any, refreshToken: any, profile: any, done: any) {
-//     // TODO: Associate with user's public key
-//     return done(null, profile);
-//   }
-// ));
-
-passport.use(new TwitterStrategy({
-    clientType: "confidential",
-    clientID: process.env.TWIT_CLIENT_ID!,
-    clientSecret: process.env.TWIT_CLIENT_SECRET!,
-    callbackURL: process.env.TWITTER_CALLBACK_URL!,
-    }, (accessToken: any, refreshToken: any, profile: any, done: any) => {
-      console.log('Success!', { accessToken, refreshToken, profile });
-      return done(null, profile);
-    }
-  )
-);
+const initTwitter = () => {
+  passport.use(new TwitterStrategy({
+      clientType: "confidential",
+      clientID: process.env.TWIT_CLIENT_ID!,
+      clientSecret: process.env.TWIT_CLIENT_SECRET!,
+      callbackURL: process.env.TWITTER_CALLBACK_URL!,
+      }, (accessToken: any, refreshToken: any, profile: any, done: any) => {
+        return done(null, profile);
+      }
+    )
+  );
 
       
+  passport.serializeUser(function(user, cb) {
+    cb(null, user);
+  });
 
-// TODO: Implement
-passport.serializeUser(function(user, cb) {
-  cb(null, user);
-});
-
-// TODO: Implement
-passport.deserializeUser(function(obj: any, cb) {
-  cb(null, obj);
-});
+  passport.deserializeUser(function(obj: any, cb) {
+    cb(null, obj);
+  });
+}
 
 // pretty sure agenda handles errors
 AGENDA.define("update status", async (job: Job) => {
