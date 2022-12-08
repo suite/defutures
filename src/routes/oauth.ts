@@ -39,6 +39,8 @@ router.get("/callback/twitter",
                 }
             }, { upsert: true, new: true });
 
+            // TODO: Redirect user to current page their on from req
+
             // Redirect to frontend 
             return res.redirect(`${OAUTH_REDIRECT_URL}`);
 
