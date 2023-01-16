@@ -1,5 +1,6 @@
 import { ObjectId } from "mongodb";
 import Pick from '../model/pick';
+import User from '../model/user';
 import { LOGTAIL } from "../config/database";
 import { ServerError } from "../misc/serverError";
 import { PickBetSchema, PickSchema } from "../misc/types";
@@ -29,7 +30,15 @@ export async function getPickemLeaderboard(pickId?: ObjectId | null): Promise<Se
     //  scorecard, tiebreaker
     // full season
     //  scorecard, accuracy
-    
+
+    // Load twitter data from User
+    const users = await User.find({});
+    const userData: { [publicKey: string]: object } = {};
+
+    // For each user, add their public key as a key to userData 
+    for (const user of users) {
+        userData[user.publicKey] = user.twitterData;
+    }
 
     try {
         if(pickId !== null) {
@@ -60,6 +69,7 @@ export async function getPickemLeaderboard(pickId?: ObjectId | null): Promise<Se
                 const { publicKey, points, tieBreaker, tieBreakerPoints } = placedBet;
                 const totalSelections = placedBet.pickedTeams.length;
                 const accuracy = Math.floor((points/(totalSelections*1000)) * 10000) / 100;
+                const twitterData = userData[publicKey] || null;
 
                 return {
                     publicKey,
@@ -67,7 +77,8 @@ export async function getPickemLeaderboard(pickId?: ObjectId | null): Promise<Se
                     tieBreaker,
                     tieBreakerPoints,
                     totalSelections,
-                    accuracy
+                    accuracy,  
+                    twitterData
                 }
             })
 
@@ -104,6 +115,7 @@ export async function getPickemLeaderboard(pickId?: ObjectId | null): Promise<Se
         const leaderboardArray: Array<PickemLeaderboard> = Object.keys(leaderboard).map((publicKey) => {
             const { points, gamesPlayed, totalSelections, tieBreakerPoints } = leaderboard[publicKey];
             const accuracy = Math.floor((points/(totalSelections*1000)) * 10000) / 100;
+            const twitterData = userData[publicKey] || null;
             
             return {
                 publicKey,
@@ -112,7 +124,8 @@ export async function getPickemLeaderboard(pickId?: ObjectId | null): Promise<Se
                 tieBreakerPoints,
                 gamesPlayed,
                 totalSelections,
-                accuracy
+                accuracy,
+                twitterData
             }
         }).sort((a, b) => b.points - a.points);
 
