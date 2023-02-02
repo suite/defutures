@@ -15,6 +15,7 @@ import getUserPick from "../queries/getUserPick";
 import placePick from "../queries/placePick";
 import { getPickemLeaderboard } from "../queries/leaderboard";
 import Stats from "../model/stats";
+import { getActivity } from "../queries/activity";
 
 const router = express.Router();
 
@@ -248,6 +249,24 @@ router.get('/stats', async (req, res) => {
     } catch(err) {
         return res.status(400).json({ message: "Error fetching stats", data: {} }) 
     }
+})
+
+router.post('/activity', async (req, res) => {
+    try {
+        const { wagerId } = req.body;
+
+        const wagerObjectId = getObjectId(wagerId);
+
+        if (!wagerObjectId) {
+            res.status(400).send({ message: "Invalid input", data: {} });
+            return;
+        }
+
+        const activity = await getActivity(wagerObjectId);
+        res.status(200).json({ message: "Fetched activity", data: activity })
+    } catch(err) {
+        return res.status(400).json({ message: "Error fetching stats", data: {} }) 
+    } 
 })
 
 export default router;

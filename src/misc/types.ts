@@ -35,7 +35,8 @@ export type WagerBetSchema = {
     selectionId: ObjectId,
     nickname: string,
     winAmount: number,
-    transferData: WagerTransferData
+    transferData: WagerTransferData,
+    user: WagerUser
 }
 
 export type WagerSchema = {
@@ -139,4 +140,16 @@ export type StatsSchema = {
     gameHosted: number,
     uniquePlayers: number,
     totalVolume: number,
+}
+
+export type TwitterData = {
+    id: string;
+    username: string;
+    displayName: string;
+    profileImage: string;
+}
+
+export type WagerUser = {
+    publicKey: string;
+    twitterData: TwitterData | null;
 }

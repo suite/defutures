@@ -86,6 +86,11 @@ send feeeees! - DONE
   NEW TODO:
   - clean up structure
   - add eslint (always use " vs ')
+
+
+
+  // NEW TODO
+  - submit twitter data to pick on pick submit (march madness)
 */
 
 const authorization = (req: express.Request, res: express.Response, next: express.NextFunction) => {

@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { userSchema } from "./user";
 
 // Look into mongoose required types?
 
@@ -24,7 +25,8 @@ const placedBet = new mongoose.Schema({
     selectionId: { type: mongoose.Schema.Types.ObjectId },
     nickname: { type: String, default: '' },
     winAmount: { type: Number, default: 0 },
-    transferData: { type: transferData, default: { error: 0 } }
+    transferData: { type: transferData, default: { error: 0 } },
+    user: { type: userSchema, default: null },
 });
 
 const wagerSelection = new mongoose.Schema({

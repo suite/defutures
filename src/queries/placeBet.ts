@@ -1,7 +1,8 @@
 import { ObjectId } from "mongodb";
-import { TokenBalanceResult } from "../misc/types";
+import { TokenBalanceResult, WagerUser } from "../misc/types";
 import { getTokenBalanceChange } from "./solana";
 import Wager from '../model/wager';
+import User from '../model/user';
 import { ServerError } from "../misc/serverError";
 import { FEE_MULTIPLIER, LOGTAIL } from "../config/database";
 
@@ -36,6 +37,8 @@ export default async function placeBet(wagerId: ObjectId, selectionId: ObjectId,
 
         const publicKey = amountBet.userPublicKey;
 
+        const user: WagerUser | null = await User.findOne({ publicKey });
+
         // Add them to placedBets, increase totalUsers if no past bets
         await Wager.updateOne({ 
             _id: wagerId, 
@@ -53,6 +56,7 @@ export default async function placeBet(wagerId: ObjectId, selectionId: ObjectId,
             $push: { placedBets: {
                 publicKey,
                 selectionId,
+                user
             }},
             $inc: {
                 'selections.$.totalUsers': 1

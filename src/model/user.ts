@@ -7,7 +7,7 @@ const twitterData = new mongoose.Schema({
     profileImage: { type: String },
 });
 
-const userSchema = new mongoose.Schema({
+export const userSchema = new mongoose.Schema({
     publicKey: { type: String },
     twitterData: { type: twitterData, default: null },
 });
