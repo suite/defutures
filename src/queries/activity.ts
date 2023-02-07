@@ -17,7 +17,7 @@ export async function getActivity(wagerId: ObjectId): Promise<ServerError | Arra
 
         // For each user, add their public key as a key to userData 
         for (const user of users) {
-            userData[user.publicKey] = user.twitterData;
+            userData[user.publicKey] = user;
         }
 
         // Add user data to each placedBet
