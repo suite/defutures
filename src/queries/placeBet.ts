@@ -37,7 +37,7 @@ export default async function placeBet(wagerId: ObjectId, selectionId: ObjectId,
 
         const publicKey = amountBet.userPublicKey;
 
-        const user: WagerUser | null = await User.findOne({ publicKey });
+        // const user: WagerUser | null = await User.findOne({ publicKey });
 
         // Add them to placedBets, increase totalUsers if no past bets
         await Wager.updateOne({ 
@@ -55,8 +55,7 @@ export default async function placeBet(wagerId: ObjectId, selectionId: ObjectId,
         { 
             $push: { placedBets: {
                 publicKey,
-                selectionId,
-                user
+                selectionId
             }},
             $inc: {
                 'selections.$.totalUsers': 1
