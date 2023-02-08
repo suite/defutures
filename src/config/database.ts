@@ -1,4 +1,5 @@
 import mongoose, { ObjectId } from "mongoose";
+import { TwitterApi } from 'twitter-api-v2';
 
 const { MONGO_URL } = process.env;
 import Agenda, { Job } from "agenda";
@@ -76,6 +77,14 @@ export const connectMongo = async () => {
     process.exit(1);
   }
 };
+
+// Init twitter api
+export const TWITTER = new TwitterApi({
+  appKey: process.env.TWITTER_BOT_APP_KEY!,
+  appSecret: process.env.TWITTER_BOT_APP_SECRET!,
+  accessToken: process.env.TWITTER_BOT_ACCESS_TOKEN!,
+  accessSecret: process.env.TWITTER_BOT_ACCESS_SECRET!,
+});
 
 
 // Init twitter oauth
@@ -194,3 +203,4 @@ AGENDA.define("update stats", async (job: Job) => {
 
     await updateStats();
 })
+

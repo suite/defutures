@@ -1,19 +1,27 @@
 import { ObjectId } from "mongodb";
-import { TokenBalanceResult, WagerUser } from "../misc/types";
+import { TokenBalanceResult, WagerSchema, WagerUser } from "../misc/types";
 import { getTokenBalanceChange } from "./solana";
 import Wager from '../model/wager';
 import User from '../model/user';
 import { ServerError } from "../misc/serverError";
 import { FEE_MULTIPLIER, LOGTAIL } from "../config/database";
+import { tweetImage } from "../misc/imageUtils";
 
 export default async function placeBet(wagerId: ObjectId, selectionId: ObjectId, signature: string): Promise<TokenBalanceResult | ServerError> {
     try {
         // Ensure wager is live and selection id exists on wager
-        const wagerData = await Wager.findOne({ _id: wagerId, status: "live", 'selections._id': selectionId }, {'selections.$': 1, 'endDate': 1})
+        const wagerData: WagerSchema | null = await Wager.findOne({ _id: wagerId, status: "live" }, {'selections': 1, 'endDate': 1})
 
         if(!wagerData) throw new ServerError("Wager is not available.");
 
-        const wagerPubkey = wagerData.selections[0]?.publicKey;
+        // const wagerPubkey = wagerData.selections[0]?.publicKey;
+        const selectedSelection = wagerData.selections.find((selection) => selection._id.equals(selectionId));
+        const otherSelection = wagerData.selections.find((selection) => !selection._id.equals(selectionId));
+
+        if(!selectedSelection) throw new ServerError("Selection is not available.");
+        if(!otherSelection) throw new ServerError("Other selection is not available.");
+
+        const wagerPubkey = selectedSelection?.publicKey;
 
         if(!wagerPubkey) throw new ServerError("No live wager or selection was not found.");
 
@@ -37,7 +45,9 @@ export default async function placeBet(wagerId: ObjectId, selectionId: ObjectId,
 
         const publicKey = amountBet.userPublicKey;
 
-        // const user: WagerUser | null = await User.findOne({ publicKey });
+        const user: WagerUser | null = await User.findOne({ publicKey });
+
+        const username = user?.twitterData?.username || undefined;
 
         // Add them to placedBets, increase totalUsers if no past bets
         await Wager.updateOne({ 
@@ -86,7 +96,10 @@ export default async function placeBet(wagerId: ObjectId, selectionId: ObjectId,
         // Update total spent TODO: Only add if confirmed
         await Wager.updateOne({ _id: wagerId, 'selections._id': selectionId }, { 
             $inc: { 'selections.$.totalSpent': finalBetAmount }
-        })
+        });
+
+        // Tweet image
+        tweetImage(publicKey, finalBetAmount, selectedSelection.title, otherSelection.title, username);
 
         LOGTAIL.info(`${publicKey} placed a bet of ${finalBetAmount}`)
 
