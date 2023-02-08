@@ -251,7 +251,7 @@ router.get('/stats', async (req, res) => {
     }
 })
 
-router.post('/activity', async (req, res) => {
+router.post('/activityFeed', async (req, res) => {
     try {
         const { wagerId } = req.body;
 
