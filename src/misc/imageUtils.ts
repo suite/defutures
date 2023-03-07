@@ -273,17 +273,19 @@ export const createTwitterImage = async (publicKey: string, betAmount: number, p
 }
 
 export const tweetImage = async (publicKey: string, betAmount: number, pickedTeam: string, otherTeam: string, username?: string) => {
+    const roundedBetAmount = Math.floor(betAmount * 100) / 100;
+
     const formattedPublicKey = formatPublicKey(publicKey);
     
-    const imgData = await createTwitterImage(formattedPublicKey, betAmount, pickedTeam, otherTeam, username);
+    const imgData = await createTwitterImage(formattedPublicKey, roundedBetAmount, pickedTeam, otherTeam, username);
 
     const mediaId = await TWITTER.v1.uploadMedia(imgData, { type: 'image/png' });
 
     let tweetText;
     if(username) {
-        tweetText = `${getRandomPhrase()} @${username}\n\nYou picked ${pickedTeam} to beat ${otherTeam} with ${betAmount} $DUST on degenpicks.xyz`;
+        tweetText = `${getRandomPhrase()} @${username}\n\nYou picked ${pickedTeam} to beat ${otherTeam} with ${roundedBetAmount} $DUST on degenpicks.xyz`;
     } else {
-        tweetText = `Wallet ${formattedPublicKey} picked ${pickedTeam} to beat ${otherTeam} with ${betAmount} $DUST on degenpicks.xyz`;
+        tweetText = `Wallet ${formattedPublicKey} picked ${pickedTeam} to beat ${otherTeam} with ${roundedBetAmount} $DUST on degenpicks.xyz`;
     }
     
     await TWITTER.v2.tweet(tweetText, { media: { media_ids: [mediaId ]} });
