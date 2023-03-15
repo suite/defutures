@@ -62,7 +62,30 @@ const wagerSchema = new mongoose.Schema({
     gameDate: { type: Number },
     placedBets: { type: [placedBet], default: []},
     airdropProgress: { type: Boolean, default: false },
-    metadata: { type: [] }
+    metadata: { type: [], default: [] } 
+    /*
+    ex: 
+    metadata: [
+        {  https://metadata.y00ts.com/y/2.json
+            'y00t': {
+                traits: [],
+                ids: []
+            }
+        },
+        { https://metadata.degods.com/g/990.json
+            'de': {
+                traits: [],
+                ids: []
+            }
+        }, 
+        {
+            'custom_urls': [],
+        },
+        {
+            'homepageNftOne': '', Make sure these work
+            'homepageNftTwo': '',
+        }
+    */
 });
 
 export default mongoose.model("wager", wagerSchema);

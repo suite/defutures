@@ -10,7 +10,7 @@ import { tweetImage } from "../misc/imageUtils";
 export default async function placeBet(wagerId: ObjectId, selectionId: ObjectId, signature: string): Promise<TokenBalanceResult | ServerError> {
     try {
         // Ensure wager is live and selection id exists on wager
-        const wagerData: WagerSchema | null = await Wager.findOne({ _id: wagerId, status: "live" }, {'selections': 1, 'endDate': 1})
+        const wagerData: WagerSchema | null = await Wager.findOne({ _id: wagerId, status: "live" })
 
         if(!wagerData) throw new ServerError("Wager is not available.");
 
@@ -99,7 +99,7 @@ export default async function placeBet(wagerId: ObjectId, selectionId: ObjectId,
         });
 
         // Tweet image
-        tweetImage(publicKey, finalBetAmount, selectedSelection.title, otherSelection.title, username);
+        tweetImage(wagerData, publicKey, finalBetAmount, selectedSelection.title, otherSelection.title, username);
 
         LOGTAIL.info(`${publicKey} placed a bet of ${finalBetAmount}`)
 

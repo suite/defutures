@@ -5,6 +5,7 @@ import { TwitterApi } from 'twitter-api-v2';
 import { TWITTER } from '../config/database';
 
 import fetch from 'node-fetch';
+import { WagerSchema } from './types';
 
 // Register fonts
 registerFont('./assets/gt-reg.ttf', { family: 'GT Pressura' });
@@ -76,6 +77,7 @@ const getRandomPhrase = () => {
 }
 
 const getY00tID = (): number => {
+    // if metadata has y00t.ids, or y00t.traits,
     let y00tID = -1;
     while(y00tID === -1) {
         const randomNum = Math.floor(Math.random() * 1500);
@@ -99,46 +101,104 @@ const getY00tImage = async (): Promise<Image | null> => {
             const imageUrl = `https://metadata.y00ts.com/y/${randomNum}.png`;
             const y00tImage = await loadImage(imageUrl);
 
-            // const metadata = await getY00tMetaData(randomNum);
-            // if(!metadata) {
-            //     throw new Error("No metadata");
-            // }
-
-            // const background = metadata.attributes.find((attr: any) => attr.trait_type === "Background");
-            // console.log("background", background.value);
-
             return y00tImage;
         } catch (err) {
             // Sleep for 1500 ms
             console.log(err)
             await delay(ERR_TIMEOUT);
-            return await getY00tImage();
         }
     }
 
     return null;
 }
 
-const getY00tMetaData = async (y00tId: number): Promise<any | null> => {
+const getImageWithRetry = async (imageUrl: string): Promise<Image | null> => {
     let retries = 0;
     while(retries < RETRY_AMOUNT) {
         retries++;
 
         try {
-            const imageUrl = `https://metadata.y00ts.com/y/${y00tId}.json`;
-   
-            const response = await fetch(imageUrl);
+            return await loadImage(imageUrl);;
+        } catch (err) {
+            // Sleep for 1500 ms
+            console.log(err)
+            await delay(ERR_TIMEOUT);
+        }
+    }
+
+    return null;
+}
+
+const getMetaDataWithRetry = async (isDe: boolean, id: number): Promise<any | null> => {
+    const dataUrl = isDe 
+        ? `https://metadata.degods.com/g/${id}.json` 
+        : `https://metadata.y00ts.com/y/${id}.json`;
+
+    let retries = 0;
+    while(retries < RETRY_AMOUNT) {
+        retries++;
+
+        try {
+            const response = await fetch(dataUrl);
             const data = await response.json();
             return data;
         } catch (err) {
             // Sleep for 1500 ms
             console.log(err)
             await delay(ERR_TIMEOUT);
-            return await getY00tMetaData(y00tId);
         }
     }
 
     return null;
+}
+
+const getCustomUrlImage = async (custom_urls: Array<string>): Promise<Image | null> => {
+    // Get random url from custom_urls
+    const randomUrl = custom_urls[randomIntFromInterval(0, (custom_urls.length-1) || 0)];
+    return await getImageWithRetry(randomUrl); 
+}
+
+
+// TODO: build out getting y00t/de image, see where 
+const getImageFromIds = async (ids: Array<number>, isDe: boolean): Promise<Image | null> => {
+    const imageId = ids[randomIntFromInterval(0, (ids.length-1) || 0)];
+    const imageUrl = isDe 
+        ? `https://metadata.degods.com/g/${imageId}-dead.png` 
+        : `https://metadata.y00ts.com/y/${imageId}.png`;
+
+    return await getImageWithRetry(imageUrl);
+}
+
+
+const getNFTImage = async (wager: WagerSchema): Promise<Image | null> => {
+    try {
+        // TODO: Implement these
+        // const hasY00tTraits = wager.metadata.find((meta: any) => meta.y00t && meta.y00t.traits);
+        // const hasDeTraits = wager.metadata.find((meta: any) => meta.de && meta.de.traits);
+    
+        // check if metadata exists
+        if(!wager.metadata) {
+            return await getY00tImage();
+        }
+
+        const hasY00tIds = wager.metadata.find((meta: any) => meta.y00t && meta.y00t.ids);
+        const hasDeIds = wager.metadata.find((meta: any) => meta.de && meta.de.ids);
+
+        if(hasY00tIds || hasDeIds) {
+            return await getImageFromIds(hasY00tIds ? hasY00tIds.y00t.ids : hasDeIds.de.ids, !!hasDeIds);
+        }
+
+        const hasCustomUrls = wager.metadata.find((meta: any) => meta.custom_urls);
+        if(hasCustomUrls) {
+            return await getCustomUrlImage(hasCustomUrls.custom_urls);
+        }
+
+        // If none else, just get random y00t
+        return await getY00tImage();
+    } catch (err) {
+        console.log(`Error getting NFT image: ${err}`);
+        return null;
+    }
 }
 
 const formatPublicKey = (publicKey: string) => {
@@ -169,7 +229,7 @@ const getLines = (ctx: CanvasRenderingContext2D, text: string, maxWidth: number)
 }
 
 const workingColors = new Set();
-export const createTwitterImage = async (publicKey: string, betAmount: number, pickedTeam: string, otherTeam: string, username?: string): Promise<Buffer> => {
+export const createTwitterImage = async (wager: WagerSchema, publicKey: string, betAmount: number, pickedTeam: string, otherTeam: string, username?: string): Promise<Buffer> => {
     try {
         const canvas = createCanvas(1600, 900);
         const ctx = canvas.getContext('2d');
@@ -185,15 +245,15 @@ export const createTwitterImage = async (publicKey: string, betAmount: number, p
         let textLineHeight = ((900 - totalLineHeight) / 2) + (fontSize);
         console.log(lines.length, totalLineHeight, textLineHeight)
 
-        const y00tImage = await getY00tImage();
-        if(!y00tImage) {
+        const nftImage = await getNFTImage(wager);
+        if(!nftImage) {
             throw new Error("Could not get y00t image");
         }
 
-        ctx.drawImage(y00tImage, -200, 0, 900, 900);
+        ctx.drawImage(nftImage, -200, 0, 900, 900);
 
         // Get background color
-        const { data } = ctx.getImageData(0, 0, 1, 1);
+        const { data } = ctx.getImageData(0, 450, 1, 1);
 
         // Set background color
         const bgRgb = `${data[0]}, ${data[1]}, ${data[2]}`;
@@ -268,16 +328,16 @@ export const createTwitterImage = async (publicKey: string, betAmount: number, p
     } catch (err) {
         // TODO: Add logtail
         await delay(ERR_TIMEOUT);
-        return await createTwitterImage(publicKey, betAmount, pickedTeam, otherTeam, username);
+        return await createTwitterImage(wager, publicKey, betAmount, pickedTeam, otherTeam, username);
     }
 }
 
-export const tweetImage = async (publicKey: string, betAmount: number, pickedTeam: string, otherTeam: string, username?: string) => {
+export const tweetImage = async (wager: WagerSchema, publicKey: string, betAmount: number, pickedTeam: string, otherTeam: string, username?: string) => {
     const roundedBetAmount = Math.floor(betAmount * 100) / 100;
 
     const formattedPublicKey = formatPublicKey(publicKey);
     
-    const imgData = await createTwitterImage(formattedPublicKey, roundedBetAmount, pickedTeam, otherTeam, username);
+    const imgData = await createTwitterImage(wager, formattedPublicKey, roundedBetAmount, pickedTeam, otherTeam, username);
 
     const mediaId = await TWITTER.v1.uploadMedia(imgData, { type: 'image/png' });
 

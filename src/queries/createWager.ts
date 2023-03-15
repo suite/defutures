@@ -23,7 +23,7 @@ export default async function createWager(title: string,
     selection2winnerImg: string, 
     selection2nftImg: string,
     startDate: number, 
-    endDate: number, gameDate: number): Promise<WagerSchema | ServerError> {
+    endDate: number, gameDate: number, metadata?: Array<any>): Promise<WagerSchema | ServerError> {
 
     try {
         const currentTime = new Date().getTime()
@@ -51,7 +51,8 @@ export default async function createWager(title: string,
             ],
             startDate,
             endDate,
-            gameDate
+            gameDate,
+            metadata
         }
 
         const wager: WagerSchema = await Wager.create(wagerOptions)

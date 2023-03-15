@@ -36,7 +36,7 @@ router.post('/createWager', async (req, res) => {
         selection2winnerImg, 
         selection2nftImg,
         startDate, 
-        endDate, gameDate } = req.body;
+        endDate, gameDate, metadata } = req.body;
 
     if (!(title && description && selection1 && selection2 && selection1img && selection1winnerImg && selection1nftImg
          && selection2img && selection2winnerImg && selection2nftImg && startDate && endDate && gameDate) || 
@@ -61,7 +61,8 @@ router.post('/createWager', async (req, res) => {
         selection2nftImg,
         startDate, 
         endDate, 
-        gameDate);
+        gameDate,
+        metadata);
 
     if(result instanceof ServerError) {
         return res.status(400).json({ message: result.message, data: result }) 
