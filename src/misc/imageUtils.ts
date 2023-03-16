@@ -201,6 +201,15 @@ const getNFTImage = async (wager: WagerSchema): Promise<Image | null> => {
     }
 }
 
+const getFeaturedText = (wager: WagerSchema): string => {
+    const hasFeaturedText = wager.metadata?.find((meta: any) => meta.featured_text);
+    if(hasFeaturedText) {
+        return hasFeaturedText.featured_text;
+    }
+
+    return '';
+}
+
 const formatPublicKey = (publicKey: string) => {
     let slice1 = publicKey.slice(0, 4);
     let slice2 = publicKey.slice(publicKey.length - 4, publicKey.length);
@@ -342,12 +351,21 @@ export const tweetImage = async (wager: WagerSchema, publicKey: string, betAmoun
     const mediaId = await TWITTER.v1.uploadMedia(imgData, { type: 'image/png' });
 
     let tweetText;
+    const featuredText = getFeaturedText(wager);
     if(username) {
-        tweetText = `${getRandomPhrase()} @${username}\n\nYou picked ${pickedTeam} to beat ${otherTeam} with ${roundedBetAmount} $DUST on degenpicks.xyz`;
+        tweetText = `${getRandomPhrase()} @${username}\n\nYou picked ${pickedTeam} to beat ${otherTeam} with ${roundedBetAmount} $DUST on degenpicks.xyz ${featuredText}`;
     } else {
-        tweetText = `Wallet ${formattedPublicKey} picked ${pickedTeam} to beat ${otherTeam} with ${roundedBetAmount} $DUST on degenpicks.xyz`;
+        tweetText = `Wallet ${formattedPublicKey} picked ${pickedTeam} to beat ${otherTeam} with ${roundedBetAmount} $DUST on degenpicks.xyz ${featuredText}`;
     }
     
     await TWITTER.v2.tweet(tweetText, { media: { media_ids: [mediaId ]} });
 }
 
+/* TODO:
+    - Add it "feat." text to the tweet - check if works
+    - Make sure homepageNft's are implemened on frontend (get games organized)
+    - Test creating game with metadata
+    - Test image bot
+    - Create script to get certain ids
+
+*/
