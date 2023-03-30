@@ -1,10 +1,7 @@
 import { createCanvas, loadImage, registerFont, Image, CanvasRenderingContext2D } from 'canvas';
 import fs from 'fs/promises';
-// import fetch from 'node-fetch';
-import { TwitterApi } from 'twitter-api-v2';
-import { TWITTER } from '../config/database';
+import { LOGTAIL, TWITTER } from '../config/database';
 
-import fetch from 'node-fetch';
 import { WagerSchema } from './types';
 
 // Register fonts
@@ -129,28 +126,28 @@ const getImageWithRetry = async (imageUrl: string): Promise<Image | null> => {
     return null;
 }
 
-const getMetaDataWithRetry = async (isDe: boolean, id: number): Promise<any | null> => {
-    const dataUrl = isDe 
-        ? `https://metadata.degods.com/g/${id}.json` 
-        : `https://metadata.y00ts.com/y/${id}.json`;
+// const getMetaDataWithRetry = async (isDe: boolean, id: number): Promise<any | null> => {
+//     const dataUrl = isDe 
+//         ? `https://metadata.degods.com/g/${id}.json` 
+//         : `https://metadata.y00ts.com/y/${id}.json`;
 
-    let retries = 0;
-    while(retries < RETRY_AMOUNT) {
-        retries++;
+//     let retries = 0;
+//     while(retries < RETRY_AMOUNT) {
+//         retries++;
 
-        try {
-            const response = await fetch(dataUrl);
-            const data = await response.json();
-            return data;
-        } catch (err) {
-            // Sleep for 1500 ms
-            console.log(err)
-            await delay(ERR_TIMEOUT);
-        }
-    }
+//         try {
+//             const response = await fetch(dataUrl);
+//             const data = await response.json();
+//             return data;
+//         } catch (err) {
+//             // Sleep for 1500 ms
+//             console.log(err)
+//             await delay(ERR_TIMEOUT);
+//         }
+//     }
 
-    return null;
-}
+//     return null;
+// }
 
 const getCustomUrlImage = async (custom_urls: Array<string>): Promise<Image | null> => {
     // Get random url from custom_urls
@@ -197,6 +194,7 @@ const getNFTImage = async (wager: WagerSchema): Promise<Image | null> => {
         return await getY00tImage();
     } catch (err) {
         console.log(`Error getting NFT image: ${err}`);
+        LOGTAIL.error(`Error getting NFT image ${err}`)
         return null;
     }
 }
@@ -335,30 +333,36 @@ export const createTwitterImage = async (wager: WagerSchema, publicKey: string, 
     
         return buf;
     } catch (err) {
-        // TODO: Add logtail
+        LOGTAIL.error(`Error creating image ${err}`)
         await delay(ERR_TIMEOUT);
         return await createTwitterImage(wager, publicKey, betAmount, pickedTeam, otherTeam, username);
     }
 }
 
 export const tweetImage = async (wager: WagerSchema, publicKey: string, betAmount: number, pickedTeam: string, otherTeam: string, username?: string) => {
-    const roundedBetAmount = Math.floor(betAmount * 100) / 100;
+    try {
+        const roundedBetAmount = Math.floor(betAmount * 100) / 100;
 
-    const formattedPublicKey = formatPublicKey(publicKey);
+        const formattedPublicKey = formatPublicKey(publicKey);
+        
+        const imgData = await createTwitterImage(wager, formattedPublicKey, roundedBetAmount, pickedTeam, otherTeam, username);
     
-    const imgData = await createTwitterImage(wager, formattedPublicKey, roundedBetAmount, pickedTeam, otherTeam, username);
+        const mediaId = await TWITTER.v1.uploadMedia(imgData, { type: 'image/png' });
+    
+        let tweetText;
+        const featuredText = getFeaturedText(wager);
 
-    const mediaId = await TWITTER.v1.uploadMedia(imgData, { type: 'image/png' });
-
-    let tweetText;
-    const featuredText = getFeaturedText(wager);
-    if(username) {
-        tweetText = `${getRandomPhrase()} @${username}\n\nYou picked ${pickedTeam} to beat ${otherTeam} with ${roundedBetAmount} $DUST on degenpicks.xyz ${featuredText}`;
-    } else {
-        tweetText = `Wallet ${formattedPublicKey} picked ${pickedTeam} to beat ${otherTeam} with ${roundedBetAmount} $DUST on degenpicks.xyz ${featuredText}`;
+        if(username) {
+            tweetText = `${getRandomPhrase()} @${username}\n\nYou picked ${pickedTeam} to beat ${otherTeam} with ${roundedBetAmount} $DUST on degenpicks.xyz ${featuredText}`;
+        } else {
+            tweetText = `Wallet ${formattedPublicKey} picked ${pickedTeam} to beat ${otherTeam} with ${roundedBetAmount} $DUST on degenpicks.xyz ${featuredText}`;
+        }
+        
+        await TWITTER.v2.tweet(tweetText, { media: { media_ids: [mediaId ]} });
+    } catch (err) {
+        LOGTAIL.error(`Error tweeting ${err}`)
     }
-    
-    await TWITTER.v2.tweet(tweetText, { media: { media_ids: [mediaId ]} });
+
 }
 
 /* TODO:
