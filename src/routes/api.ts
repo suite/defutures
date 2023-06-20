@@ -16,6 +16,7 @@ import placePick from "../queries/placePick";
 import { getPickemLeaderboard } from "../queries/leaderboard";
 import Stats from "../model/stats";
 import { getActivity } from "../queries/activity";
+import getAssets from "../queries/getAssets";
 
 const router = express.Router();
 
@@ -268,5 +269,10 @@ router.post('/activityFeed', async (req, res) => {
         return res.status(400).json({ message: "Error fetching stats", data: {} }) 
     } 
 })
+
+router.get('/assets', async (req, res) => {
+    const assets = await getAssets();
+    res.status(200).json({ message: "Fetched assets", data: assets });
+});
 
 export default router;
