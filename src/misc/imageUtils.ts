@@ -267,7 +267,8 @@ export const createTwitterImage = async (wager: WagerSchema, publicKey: string, 
         ctx.fillStyle = `rgba(${bgRgb})`;
 
         console.log(`rgba(${bgRgb})`)
-        ctx.fillRect(700, 0, canvas.width, canvas.height);
+        // ctx.fillRect(700, 0, canvas.width, canvas.height);
+        ctx.fillRect(1600, 0, canvas.width, canvas.height);
 
         // Set text color
         const textColor = `rgba(${BG_TEXT_COLORS[bgRgb] || "0, 0, 0"})`;
