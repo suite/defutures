@@ -42,9 +42,20 @@ async function createWagerEscrow(selectionId: ObjectId): Promise<web3.PublicKey 
         LOGTAIL.info(`Created keypair for selection ${selectionId} ${createdKeyPair.publicKey.toString()}`);
 
         // Creates token account for mint
-        const tokenAccount = await splToken.getOrCreateAssociatedTokenAccount(CONNECTION, FUND_KEYPAIR, TOKEN_MINT, createdKeyPair.publicKey);
+        let tokenAccount;
+        for (let i = 0; i < 5; i++) {
+            try {
+                tokenAccount = await splToken.getOrCreateAssociatedTokenAccount(CONNECTION, FUND_KEYPAIR, TOKEN_MINT, createdKeyPair.publicKey);
+                if (tokenAccount) {
+                    break; // exit loop if operation was successful
+                }
+            } catch (err) {
+                LOGTAIL.error(`Attempt ${i+1} failed: ${err}`);
+                await new Promise(res => setTimeout(res, 1000)); // wait for 1 second before next try
+            }
+        }
 
-        if(!tokenAccount) throw 'Error creating token account.'
+        if(!tokenAccount) throw 'Error creating token account after 5 attempts.'
 
         LOGTAIL.info(`Created wager escrow for selection ${selectionId}`)
 
