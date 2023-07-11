@@ -12,11 +12,12 @@ import WagerWallet from '../model/wagerWallet';
 import { transferSplToken } from "./solana";
 import AsyncLock from 'async-lock';
 import { LOGTAIL } from "../config/database";
+import sendFees from "./sendFees";
 
 const lock = new AsyncLock();
 
 export default async function airdrop(wagerId: ObjectId) {
-    lock.acquire("airdrop", async (done) => {
+    lock.acquire(`${wagerId.toString()}`, async (done) => {
         try {
             const airdropStatus = await getAirdropProgress(wagerId);
             if(airdropStatus) return;
@@ -54,7 +55,13 @@ export default async function airdrop(wagerId: ObjectId) {
                 });
             }
 
-            LOGTAIL.info(`Completed airdrops for wager ${wagerId}`);
+            LOGTAIL.info(`Completed airdrops for wager ${wagerId}, sending fees...`);
+
+            const sendFeesRes = await sendFees(wagerId);
+
+            if(sendFeesRes instanceof ServerError) throw sendFeesRes;
+
+            LOGTAIL.info(`Completed airdrops+fees for ${wagerId} !!!`);
 
             done();
         } catch (err) {

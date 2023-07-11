@@ -9,8 +9,9 @@ import setWinners from "./setWinners";
 import { getWagerEscrowWallet } from "../misc/utils";
 import { LOGTAIL } from "../config/database";
 import setLosers from "./setLosers";
+import airdrop from "./airdrop";
 
-export default async function declareWagerWinner(selectionId: ObjectId, finalScore?: string): Promise<boolean | ServerError> {
+export default async function declareWagerWinner(wagerId: ObjectId, selectionId: ObjectId, finalScore?: string): Promise<boolean | ServerError> {
     try {
         // Winner already selected or wager still live/upcoming 
         const otherWinners = await Wager.findOne({ 'selections._id': selectionId, $or: [{'status': 'completed'}, {'status': { $ne: 'closed' }}] })
@@ -53,7 +54,9 @@ export default async function declareWagerWinner(selectionId: ObjectId, finalSco
 
         await Wager.updateOne({ 'selections._id': selectionId }, { '$set': statusUpdate })
 
-        LOGTAIL.info(`Delcared selection ${selectionId} as winner`)
+        airdrop(wagerId);
+
+        LOGTAIL.info(`Delcared selection ${selectionId} as winner and started airdrops`);
 
         return true;
     } catch (err) {

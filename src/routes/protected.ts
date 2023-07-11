@@ -90,16 +90,17 @@ router.post('/createPick', async (req, res) => {
 })
 
 router.post('/declareWinner', async (req, res) => { 
-    const { selectionId, finalScore } = req.body;
+    const { wagerId, selectionId, finalScore } = req.body;
 
     const selectionObjectId = getObjectId(selectionId);
+    const wagerObjectId = getObjectId(wagerId);
 
-    if(!selectionObjectId) {
+    if(!selectionObjectId || !wagerObjectId) {
         res.status(400).send({ message: "Invalid input", data: {} });
         return;
     }
 
-    const result = await declareWagerWinner(selectionObjectId, finalScore)
+    const result = await declareWagerWinner(wagerId, selectionObjectId, finalScore)
 
     if(result instanceof ServerError) {
         return res.status(400).json({ message: result.message, data: result }) 
@@ -178,7 +179,7 @@ router.post('/cancelWager', async (req, res) => {
         return;
     }
 
-    const result = await cancelWager(wagerObjectId)
+    const result = await cancelWager(wagerObjectId);
 
     if(result instanceof ServerError) {
         return res.status(400).json({ message: result.message, data: result }) 
