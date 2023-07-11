@@ -55,11 +55,14 @@ export default async function airdrop(wagerId: ObjectId) {
                 });
             }
 
-            LOGTAIL.info(`Completed airdrops for wager ${wagerId}, sending fees...`);
+            LOGTAIL.info(`Completed airdrops for wager ${wagerId}`);
 
-            const sendFeesRes = await sendFees(wagerId);
+            if(wager.status === "completed") {
+                LOGTAIL.info(`Starting fees for ${wagerId}`);
+                const sendFeesRes = await sendFees(wagerId);
 
-            if(sendFeesRes instanceof ServerError) throw sendFeesRes;
+                if(sendFeesRes instanceof ServerError) throw sendFeesRes;
+            }
 
             LOGTAIL.info(`Completed airdrops+fees for ${wagerId} !!!`);
 
