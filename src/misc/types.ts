@@ -150,7 +150,12 @@ export type TwitterData = {
     profileImage: string;
 }
 
+type Roles = Role[];
+type Role = 'ADMIN' | 'CREATOR' | 'DEFAULT';
+
 export type WagerUser = {
     publicKey: string;
     twitterData: TwitterData | null;
+    roles: Roles;
 }
+

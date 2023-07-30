@@ -93,6 +93,7 @@ send feeeees! - DONE
   - submit twitter data to pick on pick submit (march madness)
 */
 
+// This needs 
 const authorization = (req: express.Request, res: express.Response, next: express.NextFunction) => {
     if(SECRET && req.headers?.secret === SECRET) {
       return next();

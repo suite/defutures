@@ -10,13 +10,14 @@ import placeBet from "../queries/placeBet";
 import { KEY, WALLET_SIGN_MESSAGE_LOGIN, WALLET_SIGN_MESSAGE_LOGOUT } from "../config/database";
 import { ServerError } from "../misc/serverError";
 import getUserWager from "../queries/getUserWager";
-import { PickSchema, WagerSchema } from "../misc/types";
+import { PickSchema, WagerSchema, WagerUser } from "../misc/types";
 import getUserPick from "../queries/getUserPick";
 import placePick from "../queries/placePick";
 import { getPickemLeaderboard } from "../queries/leaderboard";
 import Stats from "../model/stats";
 import { getActivity } from "../queries/activity";
 import getAssets from "../queries/getAssets";
+import User from "../model/user";
 
 const router = express.Router();
 
@@ -30,9 +31,7 @@ const nonces: { [key: string]: string } = {};
 router.post('/generateNonce', async (req, res) => {
     const { publicKey } = req.body;
 
-    const whitelisted = await isWhitelisted(publicKey);
-
-    if(!whitelisted) {
+    if(!publicKey) {
         res.status(400).json({ nonce: ""})
         return;
     }
@@ -48,9 +47,7 @@ router.post('/generateNonce', async (req, res) => {
 router.post('/login', async (req, res) => {
     const { publicKey, signedMessage } = req.body;
 
-    const whitelisted = await isWhitelisted(publicKey);
-
-    if(!whitelisted || !signedMessage) {
+    if(!signedMessage) {
         res.status(400).json({ verified: false })
         return;
     }
@@ -58,12 +55,16 @@ router.post('/login', async (req, res) => {
     try {
         const verified = confirmWalletSigned(nonces[publicKey], signedMessage, publicKey);
 
+        delete nonces[publicKey];
+
         if(!verified) {
             res.status(400).json({ verified: false })
             return;
         }
 
-        const token = jwt.sign({ publicKey }, KEY, { "expiresIn": "2h" });
+        const user: WagerUser | null = await User.findOne({ publicKey });
+
+        const token = jwt.sign({ publicKey, user }, KEY, { "expiresIn": "2h" });
         
         res.cookie("access_token", token, {
             httpOnly: true,
@@ -76,6 +77,7 @@ router.post('/login', async (req, res) => {
     }
 });
 
+// DEPRECATED
 router.post('/confirmWallet', async (req, res) => {
     const { publicKey, signedMessage, isLogin } = req.body;
 
