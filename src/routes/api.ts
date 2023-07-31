@@ -18,6 +18,8 @@ import Stats from "../model/stats";
 import { getActivity } from "../queries/activity";
 import getAssets from "../queries/getAssets";
 import User from "../model/user";
+import { creatorMiddleware, getStatus } from "../queries/getStatus";
+import createWager from "../queries/createWager";
 
 const router = express.Router();
 
@@ -58,11 +60,15 @@ router.post('/login', async (req, res) => {
         delete nonces[publicKey];
 
         if(!verified) {
-            res.status(400).json({ verified: false })
+            res.status(400).json({ success: false })
             return;
         }
 
-        const user: WagerUser | null = await User.findOne({ publicKey });
+        let user: WagerUser | null = await User.findOne({ publicKey });
+
+        if(!user) {
+            user = await User.create({ publicKey });
+        }
 
         const token = jwt.sign({ publicKey, user }, KEY, { "expiresIn": "2h" });
         
@@ -70,11 +76,30 @@ router.post('/login', async (req, res) => {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
             sameSite: process.env.NODE_ENV === "production" ? 'none' : 'lax'
-        }).status(200).json({ verified })
+        }).status(200).json({ success: true, user })
 
     } catch (err) {
-        res.status(400).json({ verified: false })
+        res.status(400).json({ success: false })
     }
+});
+
+router.post('/logout', async (req, res) => {
+    res.clearCookie("access_token", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: process.env.NODE_ENV === "production" ? 'none' : 'lax'
+    }).status(200).json({ success: true });
+});
+
+router.get('/status', async (req, res) => {
+    const user = getStatus(req);
+
+    if(user === null) {
+        res.status(403).json({ success: false });
+        return;
+    }
+
+    res.status(200).json({ success: true, user });
 });
 
 // DEPRECATED
@@ -277,5 +302,63 @@ router.get('/assets', async (req, res) => {
     const assets = await getAssets();
     res.status(200).json({ message: "Fetched assets", data: assets });
 });
+
+router.post('/createWager', creatorMiddleware, async (req, res) => {
+    const creatorUser = getStatus(req);
+
+    if (!creatorUser) {
+        res.status(400).send({ message: "Invalid input", data: {} });
+        return;
+    }
+
+    const { title,
+        description,
+        league,
+        selection1,
+        selection1Record, 
+        selection1img, 
+        selection1winnerImg, 
+        selection1nftImg,
+        selection2, 
+        selection2Record,
+        selection2img, 
+        selection2winnerImg, 
+        selection2nftImg,
+        startDate, 
+        endDate, gameDate, metadata } = req.body;
+
+    if (!(title && description && selection1 && selection2 && selection1img && selection1winnerImg && selection1nftImg
+         && selection2img && selection2winnerImg && selection2nftImg && startDate && endDate && gameDate) || 
+        new Date(startDate) > new Date(endDate)) // Ensures end date > start date
+        {
+            res.status(400).send({ message: "Invalid input", data: {} });
+            return;
+    }
+
+    const result = await createWager(title,
+        description,
+        league, 
+        selection1,
+        selection1Record, 
+        selection1img, 
+        selection1winnerImg, 
+        selection1nftImg,
+        selection2,
+        selection2Record, 
+        selection2img, 
+        selection2winnerImg, 
+        selection2nftImg,
+        startDate, 
+        endDate, 
+        gameDate,
+        creatorUser,
+        metadata);
+
+    if(result instanceof ServerError) {
+        return res.status(400).json({ message: result.message, data: result }) 
+    }
+
+    res.status(200).json({ message: "Created wager", data: result })    
+})
 
 export default router;

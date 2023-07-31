@@ -53,7 +53,8 @@ export type WagerSchema = {
     placedBets: Array<WagerBetSchema>,
     publicKey: string,
     airdropProgress: boolean,
-    metadata: Array<any>
+    metadata: Array<any>,
+    creator: string
 }
 
 export type TokenBalanceResult = {

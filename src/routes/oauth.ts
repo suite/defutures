@@ -1,8 +1,9 @@
-import express from "express";
+import express, { Response } from "express";
 import passport from "passport";
 import jwt, { JwtPayload } from 'jsonwebtoken';
 import { KEY, OAUTH_REDIRECT_URL } from "../config/database";
 import User from '../model/user';
+import { WagerUser } from "../misc/types";
 
 const router = express.Router();
 
@@ -27,7 +28,7 @@ router.get("/callback/twitter",
             }
 
             // Update or create user with twitter data
-            await User.findOneAndUpdate({ publicKey }, { 
+            const newUser = await User.findOneAndUpdate({ publicKey }, { 
                 $set: {
                     publicKey,
                     twitterData: {
@@ -38,6 +39,9 @@ router.get("/callback/twitter",
                     }
                 }
             }, { upsert: true, new: true });
+
+            // Update jwt
+            updateJWT(publicKey, newUser, res);
 
             // TODO: Redirect user to current page their on from req
 
@@ -58,11 +62,14 @@ router.post("/logout/twitter", async (req, res) => {
             return res.sendStatus(403);
         }
 
-        await User.findOneAndUpdate({ publicKey: loggedInWallet }, { 
+        const newUser = await User.findOneAndUpdate({ publicKey: loggedInWallet }, { 
             $set: {
                 twitterData: null
             }
         });
+
+        // Update jwt
+        updateJWT(loggedInWallet, newUser, res);
 
         res.status(200).json({ success: true });
     } catch (err) {
@@ -99,6 +106,18 @@ const getLoggedInWallet = (req: any): string | null => {
     } catch (err) {
         return null;
     }
+}
+
+const updateJWT = (publicKey: string, user: WagerUser, res: Response) => {
+    // Update jwt
+    const token = jwt.sign({ publicKey, user }, KEY, { expiresIn: '2h' });
+
+    // Set the cookie with the new JWT.
+    res.cookie("access_token", token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: process.env.NODE_ENV === "production" ? 'none' : 'lax'
+    });
 }
 
 export default router;

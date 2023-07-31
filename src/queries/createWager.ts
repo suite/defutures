@@ -1,8 +1,9 @@
 import { AGENDA, LOGTAIL } from "../config/database";
-import { WagerSchema } from "../misc/types";
+import { WagerSchema, WagerUser } from "../misc/types";
 import createWagerEscrows from "./createWagerEscrows";
 import Wager from '../model/wager';
 import { ServerError } from "../misc/serverError";
+import User from "../model/user";
 
 export function getUTCTime(date: Date): number {
     return Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(),
@@ -23,7 +24,7 @@ export default async function createWager(title: string,
     selection2winnerImg: string, 
     selection2nftImg: string,
     startDate: number, 
-    endDate: number, gameDate: number, metadata?: Array<any>): Promise<WagerSchema | ServerError> {
+    endDate: number, gameDate: number, creator: WagerUser, metadata?: Array<any>): Promise<WagerSchema | ServerError> {
 
     try {
         const currentTime = new Date().getTime()
@@ -52,7 +53,8 @@ export default async function createWager(title: string,
             startDate,
             endDate,
             gameDate,
-            metadata
+            metadata,
+            creator
         }
 
         const wager: WagerSchema = await Wager.create(wagerOptions)

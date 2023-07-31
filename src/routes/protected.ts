@@ -21,56 +21,6 @@ router.get("/status", (req, res) => {
 })
 
 
-router.post('/createWager', async (req, res) => {
-    const { title,
-        description,
-        league,
-        selection1,
-        selection1Record, 
-        selection1img, 
-        selection1winnerImg, 
-        selection1nftImg,
-        selection2, 
-        selection2Record,
-        selection2img, 
-        selection2winnerImg, 
-        selection2nftImg,
-        startDate, 
-        endDate, gameDate, metadata } = req.body;
-
-    if (!(title && description && selection1 && selection2 && selection1img && selection1winnerImg && selection1nftImg
-         && selection2img && selection2winnerImg && selection2nftImg && startDate && endDate && gameDate) || 
-        new Date(startDate) > new Date(endDate)) // Ensures end date > start date
-        {
-            res.status(400).send({ message: "Invalid input", data: {} });
-            return;
-    }
-  
-    const result = await createWager(title,
-        description,
-        league, 
-        selection1,
-        selection1Record, 
-        selection1img, 
-        selection1winnerImg, 
-        selection1nftImg,
-        selection2,
-        selection2Record, 
-        selection2img, 
-        selection2winnerImg, 
-        selection2nftImg,
-        startDate, 
-        endDate, 
-        gameDate,
-        metadata);
-
-    if(result instanceof ServerError) {
-        return res.status(400).json({ message: result.message, data: result }) 
-    }
-
-    res.status(200).json({ message: "Created wager", data: result })    
-})
-
 router.post('/createPick', async (req, res) => {
     const { title, description, entryFee, startDate, endDate, selections } = req.body;
 
