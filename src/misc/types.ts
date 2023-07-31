@@ -53,7 +53,8 @@ export type WagerSchema = {
     placedBets: Array<WagerBetSchema>,
     publicKey: string,
     airdropProgress: boolean,
-    metadata: Array<any>
+    metadata: Array<any>,
+    creator: WagerUser
 }
 
 export type TokenBalanceResult = {
@@ -150,7 +151,12 @@ export type TwitterData = {
     profileImage: string;
 }
 
+type Roles = Role[];
+type Role = 'ADMIN' | 'CREATOR' | 'DEFAULT';
+
 export type WagerUser = {
     publicKey: string;
     twitterData: TwitterData | null;
+    roles: Roles;
 }
+

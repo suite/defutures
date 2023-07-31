@@ -25,7 +25,7 @@ export const OAUTH_REDIRECT_URL = process.env.OAUTH_REDIRECT_URL!;
 export const IS_DEV = process.env.HEROKU ? false : true;
 export const LOGTAIL = new Logtail("Mv7iTABrBnrLdVoKkZiabnyG");
 
-export const AGENDA = new Agenda({ db: { address: MONGO_URL! } });
+export const AGENDA = new Agenda({ db: { address: MONGO_URL! }, maxConcurrency: 100 });
 
 const CLUSTER = process.env.CLUSTER as Cluster || 'devnet';
 const CLUSTER_URL = process.env.CLUSTER_URL as string;

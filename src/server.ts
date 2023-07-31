@@ -8,6 +8,7 @@ import protectedRoute from './routes/protected';
 import oauthRoute from './routes/oauth';
 import jwt from 'jsonwebtoken';
 import passport from "passport";
+import { WagerUser } from "./misc/types";
 
 const app = express();
 const port = process.env.PORT || 3001;
@@ -93,6 +94,7 @@ send feeeees! - DONE
   - submit twitter data to pick on pick submit (march madness)
 */
 
+// This needs 
 const authorization = (req: express.Request, res: express.Response, next: express.NextFunction) => {
     if(SECRET && req.headers?.secret === SECRET) {
       return next();
@@ -105,6 +107,12 @@ const authorization = (req: express.Request, res: express.Response, next: expres
 
     try {
       const data = jwt.verify(token, KEY);
+
+      const user: WagerUser = (data as any)?.user;
+
+      if(!user.roles.includes("ADMIN")) {
+        return res.sendStatus(403);
+      }
 
       console.log("PUBLIC KEY LOGIN DETECTED", data)
       

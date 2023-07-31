@@ -10,13 +10,16 @@ import placeBet from "../queries/placeBet";
 import { KEY, WALLET_SIGN_MESSAGE_LOGIN, WALLET_SIGN_MESSAGE_LOGOUT } from "../config/database";
 import { ServerError } from "../misc/serverError";
 import getUserWager from "../queries/getUserWager";
-import { PickSchema, WagerSchema } from "../misc/types";
+import { PickSchema, WagerSchema, WagerUser } from "../misc/types";
 import getUserPick from "../queries/getUserPick";
 import placePick from "../queries/placePick";
 import { getPickemLeaderboard } from "../queries/leaderboard";
 import Stats from "../model/stats";
 import { getActivity } from "../queries/activity";
 import getAssets from "../queries/getAssets";
+import User from "../model/user";
+import { creatorMiddleware, getStatus } from "../queries/getStatus";
+import createWager from "../queries/createWager";
 
 const router = express.Router();
 
@@ -30,9 +33,7 @@ const nonces: { [key: string]: string } = {};
 router.post('/generateNonce', async (req, res) => {
     const { publicKey } = req.body;
 
-    const whitelisted = await isWhitelisted(publicKey);
-
-    if(!whitelisted) {
+    if(!publicKey) {
         res.status(400).json({ nonce: ""})
         return;
     }
@@ -48,9 +49,7 @@ router.post('/generateNonce', async (req, res) => {
 router.post('/login', async (req, res) => {
     const { publicKey, signedMessage } = req.body;
 
-    const whitelisted = await isWhitelisted(publicKey);
-
-    if(!whitelisted || !signedMessage) {
+    if(!signedMessage) {
         res.status(400).json({ verified: false })
         return;
     }
@@ -58,24 +57,52 @@ router.post('/login', async (req, res) => {
     try {
         const verified = confirmWalletSigned(nonces[publicKey], signedMessage, publicKey);
 
+        delete nonces[publicKey];
+
         if(!verified) {
-            res.status(400).json({ verified: false })
+            res.status(400).json({ success: false })
             return;
         }
 
-        const token = jwt.sign({ publicKey }, KEY, { "expiresIn": "2h" });
+        let user: WagerUser | null = await User.findOne({ publicKey });
+
+        if(!user) {
+            user = await User.create({ publicKey });
+        }
+
+        const token = jwt.sign({ publicKey, user }, KEY, { "expiresIn": "2h" });
         
         res.cookie("access_token", token, {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
             sameSite: process.env.NODE_ENV === "production" ? 'none' : 'lax'
-        }).status(200).json({ verified })
+        }).status(200).json({ success: true, user })
 
     } catch (err) {
-        res.status(400).json({ verified: false })
+        res.status(400).json({ success: false })
     }
 });
 
+router.post('/logout', async (req, res) => {
+    res.clearCookie("access_token", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: process.env.NODE_ENV === "production" ? 'none' : 'lax'
+    }).status(200).json({ success: true });
+});
+
+router.get('/status', async (req, res) => {
+    const user = getStatus(req);
+
+    if(user === null) {
+        res.status(403).json({ success: false });
+        return;
+    }
+
+    res.status(200).json({ success: true, user });
+});
+
+// DEPRECATED
 router.post('/confirmWallet', async (req, res) => {
     const { publicKey, signedMessage, isLogin } = req.body;
 
@@ -115,7 +142,8 @@ router.get('/wagers', async (req, res) => {
             endDate: 1,
             gameDate: 1,
             _id: 1,
-            metadata: 1
+            metadata: 1,
+            creator: 1
          })
 
         wagers.filter(wager => wager.status !== 'live')
@@ -275,5 +303,63 @@ router.get('/assets', async (req, res) => {
     const assets = await getAssets();
     res.status(200).json({ message: "Fetched assets", data: assets });
 });
+
+router.post('/createWager', creatorMiddleware, async (req, res) => {
+    const creatorUser = getStatus(req);
+
+    if (!creatorUser) {
+        res.status(400).send({ message: "Invalid input", data: {} });
+        return;
+    }
+
+    const { title,
+        description,
+        league,
+        selection1,
+        selection1Record, 
+        selection1img, 
+        selection1winnerImg, 
+        selection1nftImg,
+        selection2, 
+        selection2Record,
+        selection2img, 
+        selection2winnerImg, 
+        selection2nftImg,
+        startDate, 
+        endDate, gameDate, metadata } = req.body;
+
+    if (!(title && description && selection1 && selection2 && selection1img && selection1winnerImg && selection1nftImg
+         && selection2img && selection2winnerImg && selection2nftImg && startDate && endDate && gameDate) || 
+        new Date(startDate) > new Date(endDate)) // Ensures end date > start date
+        {
+            res.status(400).send({ message: "Invalid input", data: {} });
+            return;
+    }
+
+    const result = await createWager(title,
+        description,
+        league, 
+        selection1,
+        selection1Record, 
+        selection1img, 
+        selection1winnerImg, 
+        selection1nftImg,
+        selection2,
+        selection2Record, 
+        selection2img, 
+        selection2winnerImg, 
+        selection2nftImg,
+        startDate, 
+        endDate, 
+        gameDate,
+        creatorUser,
+        metadata);
+
+    if(result instanceof ServerError) {
+        return res.status(400).json({ message: result.message, data: result }) 
+    }
+
+    res.status(200).json({ message: "Created wager", data: result })    
+})
 
 export default router;

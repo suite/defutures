@@ -62,7 +62,8 @@ const wagerSchema = new mongoose.Schema({
     gameDate: { type: Number },
     placedBets: { type: [placedBet], default: []},
     airdropProgress: { type: Boolean, default: false },
-    metadata: { type: [], default: [] } 
+    metadata: { type: [], default: [] },
+    creator: { type: userSchema }, 
     /*
     ex: 
     metadata: [
