@@ -142,7 +142,8 @@ router.get('/wagers', async (req, res) => {
             endDate: 1,
             gameDate: 1,
             _id: 1,
-            metadata: 1
+            metadata: 1,
+            creator: 1
          })
 
         wagers.filter(wager => wager.status !== 'live')
