@@ -40,9 +40,6 @@ router.get("/callback/twitter",
                 }
             }, { upsert: true, new: true });
 
-            // Update jwt
-            updateJWT(publicKey, newUser, res);
-
             // TODO: Redirect user to current page their on from req
 
             // Redirect to frontend 
@@ -67,9 +64,6 @@ router.post("/logout/twitter", async (req, res) => {
                 twitterData: null
             }
         });
-
-        // Update jwt
-        updateJWT(loggedInWallet, newUser, res);
 
         res.status(200).json({ success: true });
     } catch (err) {
@@ -106,18 +100,6 @@ const getLoggedInWallet = (req: any): string | null => {
     } catch (err) {
         return null;
     }
-}
-
-const updateJWT = (publicKey: string, user: WagerUser, res: Response) => {
-    // Update jwt
-    const token = jwt.sign({ publicKey, user }, KEY, { expiresIn: '2h' });
-
-    // Set the cookie with the new JWT.
-    res.cookie("access_token", token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: process.env.NODE_ENV === "production" ? 'none' : 'lax'
-    });
 }
 
 export default router;

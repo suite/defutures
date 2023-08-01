@@ -70,7 +70,7 @@ router.post('/login', async (req, res) => {
             user = await User.create({ publicKey });
         }
 
-        const token = jwt.sign({ publicKey, user }, KEY, { "expiresIn": "2h" });
+        const token = jwt.sign({ publicKey }, KEY, { "expiresIn": "2h" });
         
         res.cookie("access_token", token, {
             httpOnly: true,
@@ -92,7 +92,7 @@ router.post('/logout', async (req, res) => {
 });
 
 router.get('/status', async (req, res) => {
-    const user = getStatus(req);
+    const user = await getStatus(req);
 
     if(user === null) {
         res.status(403).json({ success: false });
@@ -102,7 +102,7 @@ router.get('/status', async (req, res) => {
     res.status(200).json({ success: true, user });
 });
 
-// DEPRECATED
+// DEPRECATED USE FOR TWITTER LOGIN
 router.post('/confirmWallet', async (req, res) => {
     const { publicKey, signedMessage, isLogin } = req.body;
 
@@ -305,10 +305,10 @@ router.get('/assets', async (req, res) => {
 });
 
 router.post('/createWager', creatorMiddleware, async (req, res) => {
-    const creatorUser = getStatus(req);
+    const creatorUser = await getStatus(req);
 
     if (!creatorUser) {
-        res.status(400).send({ message: "Invalid input", data: {} });
+        res.status(400).send({ message: "No user data found", data: {} });
         return;
     }
 
