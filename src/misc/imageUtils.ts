@@ -3,6 +3,7 @@ import fs from 'fs/promises';
 import { LOGTAIL, TWITTER } from '../config/database';
 
 import { WagerSchema } from './types';
+import getAssets from '../queries/getAssets';
 
 // Register fonts
 registerFont('./assets/gt-reg.ttf', { family: 'GT Pressura' });
@@ -189,6 +190,19 @@ const getNFTImage = async (wager: WagerSchema): Promise<Image | null> => {
         if(hasCustomUrls) {
             return await getCustomUrlImage(hasCustomUrls.custom_urls);
         }
+
+        const hasCollection = wager.metadata.find((meta: any) => meta.collection);
+        if(hasCollection) {
+            const assets = await getAssets();
+            const leagueObj = assets.find((asset) => asset.league === hasCollection.collection);
+
+            const customUrls = leagueObj?.options.map(
+                (option: any) => option.imageUrl
+            );
+
+            return await getCustomUrlImage(customUrls); 
+        }
+
 
         // If none else, just get random y00t
         return await getY00tImage();
