@@ -315,21 +315,16 @@ router.post('/createWager', creatorMiddleware, async (req, res) => {
     const { title,
         description,
         league,
+        collection,
         selection1,
         selection1Record, 
-        selection1img, 
-        selection1winnerImg, 
-        selection1nftImg,
         selection2, 
         selection2Record,
-        selection2img, 
-        selection2winnerImg, 
-        selection2nftImg,
         startDate, 
-        endDate, gameDate, metadata } = req.body;
+        endDate, gameDate, token, metadata } = req.body;
 
-    if (!(title && description && selection1 && selection2 && selection1img && selection1winnerImg && selection1nftImg
-         && selection2img && selection2winnerImg && selection2nftImg && startDate && endDate && gameDate) || 
+    if (!(title && description && selection1 && selection2 && 
+         startDate && endDate && gameDate && token && collection) || 
         new Date(startDate) > new Date(endDate)) // Ensures end date > start date
         {
             res.status(400).send({ message: "Invalid input", data: {} });
@@ -339,20 +334,16 @@ router.post('/createWager', creatorMiddleware, async (req, res) => {
     const result = await createWager(title,
         description,
         league, 
+        collection,
         selection1,
         selection1Record, 
-        selection1img, 
-        selection1winnerImg, 
-        selection1nftImg,
         selection2,
         selection2Record, 
-        selection2img, 
-        selection2winnerImg, 
-        selection2nftImg,
         startDate, 
         endDate, 
         gameDate,
         creatorUser,
+        token,
         metadata);
 
     if(result instanceof ServerError) {

@@ -45,7 +45,8 @@ export type WagerSchema = {
     description: string,
     finalScore: string,
     status: 'upcoming' | 'live' | 'closed' | 'completed' | 'cancelled',
-    league: 'football' | 'basketball' | 'baseball' | 'boxing' | 'soccer',
+    league: string,
+    collection: string,
     selections: Array<WagerSelectionSchema>,
     startDate: number,
     endDate: number,
@@ -54,7 +55,8 @@ export type WagerSchema = {
     publicKey: string,
     airdropProgress: boolean,
     metadata: Array<any>,
-    creator: WagerUser
+    creator: WagerUser,
+    token: string
 }
 
 export type TokenBalanceResult = {
@@ -160,3 +162,17 @@ export type WagerUser = {
     roles: Roles;
 }
 
+export type TeamOption = {
+    _id: string;
+    name: string;
+    imageUrl: string;
+  };
+  
+  export type League = {
+    _id: string;
+    league: string;
+    options: TeamOption[];
+    __v: number;
+  };
+  
+  export type LeaguesArray = League[];

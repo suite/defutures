@@ -51,11 +51,8 @@ const wagerSchema = new mongoose.Schema({
         enum : ['upcoming', 'live', 'closed', 'completed', 'cancelled'],
         default: 'upcoming'
     },
-    league: {
-        type: String,
-        enum : ['football', 'basketball', 'baseball', 'boxing', 'soccer'],
-        default: 'basketball'
-    },
+    league: { type: String },
+    collection: { type: String },
     selections: { type: [wagerSelection] },
     startDate: { type: Number },
     endDate: { type: Number },
@@ -64,6 +61,7 @@ const wagerSchema = new mongoose.Schema({
     airdropProgress: { type: Boolean, default: false },
     metadata: { type: [], default: [] },
     creator: { type: userSchema }, 
+    token: { type: String }
     /*
     ex: 
     metadata: [

@@ -4,6 +4,8 @@ import createWagerEscrows from "./createWagerEscrows";
 import Wager from '../model/wager';
 import { ServerError } from "../misc/serverError";
 import User from "../model/user";
+import { countLiveGames, isOneMonthAdvance } from "../misc/utils";
+import getAssets from "./getAssets";
 
 export function getUTCTime(date: Date): number {
     return Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(),
@@ -11,22 +13,66 @@ export function getUTCTime(date: Date): number {
 }
 
 export default async function createWager(title: string,
-    description: string,
-    league: string,
+    description: string, // fine
+    league: string, // set collection name
+    collection: string,
     selection1: string, 
     selection1Record: string,
-    selection1img: string, 
-    selection1winnerImg: string,
-    selection1nftImg: string,
     selection2: string, 
     selection2Record: string,
-    selection2img: string, 
-    selection2winnerImg: string, 
-    selection2nftImg: string,
     startDate: number, 
-    endDate: number, gameDate: number, creator: WagerUser, metadata?: Array<any>): Promise<WagerSchema | ServerError> {
+    endDate: number, gameDate: number, creator: WagerUser, token: string, metadata?: Array<any>): Promise<WagerSchema | ServerError> {
 
     try {
+        // Make sure teams are not the same
+        if(selection1 === selection2) throw new ServerError("Teams cannot be the same.");
+
+        // Get assets 
+        const assets = await getAssets();
+        if(assets.length === 0) throw new ServerError("Unable to get assets.");
+
+        // Get collection by league
+        const leagueAssets = assets.find((asset) => asset.league === league);
+        if(!leagueAssets) throw new ServerError("Unable to find leagueAssets.");
+
+        // Get team by name
+        let team1Image;
+        let team2Image;
+        if(league === "custom") {
+            team1Image = leagueAssets.options[0].imageUrl;
+            team2Image = leagueAssets.options[1].imageUrl;
+        } else {
+            team1Image = leagueAssets.options.find((team) => team.name === selection1)?.imageUrl;
+            team2Image = leagueAssets.options.find((team) => team.name === selection2)?.imageUrl;
+        }
+
+        if(!team1Image || !team2Image) throw new ServerError("Unable to find team image.");
+
+        // Get NFT images
+        const collectionAssets = assets.find((asset) => asset.league === collection);
+        if(!collectionAssets) throw new ServerError("Unable to find collectionAssets.");
+
+        // Pick random NFT image
+        let nft1Image = collectionAssets.options[Math.floor(Math.random() * collectionAssets.options.length)].imageUrl;
+        let nft2Image = collectionAssets.options[Math.floor(Math.random() * collectionAssets.options.length)].imageUrl;
+
+        // Wager validation
+        // Check if live game exists with teams and tokens
+        const sameGameAmount = await countLiveGames(token, selection1, selection2);
+
+        if(sameGameAmount === null) {
+            throw new ServerError("Error checking if live game exists.")
+        }
+
+        if(sameGameAmount > 0) {
+            throw new ServerError("Live game with same teams and token already exists.")
+        }
+
+        // Cannot be more than 1 month in advance
+        if(isOneMonthAdvance(new Date(), new Date(endDate))) {
+            throw new ServerError("Wager cannot be more than 1 month in advance.")
+        } 
+
         const currentTime = new Date().getTime()
 
         const wagerOptions = {
@@ -34,27 +80,29 @@ export default async function createWager(title: string,
             description,
             status: "upcoming",
             league,
+            collection,
             selections: [
                 {
                     title: selection1,
                     record: selection1Record,
-                    imageUrl: selection1img,
-                    winnerImageUrl: selection1winnerImg,
-                    nftImageUrl: selection1nftImg
+                    imageUrl: team1Image,
+                    winnerImageUrl: ' ',
+                    nftImageUrl: nft1Image
                 },
                 {
                     title: selection2,
                     record: selection2Record,
-                    imageUrl: selection2img,
-                    winnerImageUrl: selection2winnerImg,
-                    nftImageUrl: selection2nftImg
+                    imageUrl: team2Image,
+                    winnerImageUrl: ' ',
+                    nftImageUrl: nft2Image
                 }
             ],
             startDate,
             endDate,
             gameDate,
             metadata,
-            creator
+            creator,
+            token
         }
 
         const wager: WagerSchema = await Wager.create(wagerOptions)

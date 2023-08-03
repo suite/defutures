@@ -262,3 +262,32 @@ export function confirmWalletSigned(nonce: string, signedMessage: string, public
         return false;
     }
 }
+
+export const isOneMonthAdvance = (startDate: Date, endDate: Date): boolean => {
+    const oneMonthFromStart = new Date(startDate.getTime());
+  
+    oneMonthFromStart.setDate(startDate.getDate() + 30);
+  
+    return endDate.getTime() >= oneMonthFromStart.getTime();
+}
+
+export const countLiveGames = async (token: string, selection1Title: string, selection2Title: string): Promise<number | null> => {
+    try {
+      const count = await Wager.countDocuments({
+        $and: [
+          { status: 'live' },
+          { token: token },
+          {
+            $and: [
+              { selections: { $elemMatch: { title: selection1Title } } },
+              { selections: { $elemMatch: { title: selection2Title } } },
+            ]
+          },
+        ],
+      });
+  
+      return count;
+    } catch (error) {
+      return null;
+    }
+};

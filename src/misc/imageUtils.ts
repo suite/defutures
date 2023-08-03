@@ -191,16 +191,16 @@ const getNFTImage = async (wager: WagerSchema): Promise<Image | null> => {
             return await getCustomUrlImage(hasCustomUrls.custom_urls);
         }
 
-        const hasCollection = wager.metadata.find((meta: any) => meta.collection);
-        if(hasCollection) {
+        const wagerCollection = wager.collection;
+        if(wagerCollection) {
             const assets = await getAssets();
-            const leagueObj = assets.find((asset) => asset.league === hasCollection.collection);
+            const leagueObj = assets.find((asset) => asset.league === wagerCollection);
 
             const customUrls = leagueObj?.options.map(
                 (option: any) => option.imageUrl
             );
 
-            return await getCustomUrlImage(customUrls); 
+            return await getCustomUrlImage(customUrls!); 
         }
 
 
