@@ -1,4 +1,5 @@
-import mongoose, { ObjectId } from "mongoose";
+import mongoose from "mongoose";
+import { ObjectId } from "mongodb";
 import { TwitterApi } from 'twitter-api-v2';
 
 const { MONGO_URL } = process.env;
@@ -12,6 +13,7 @@ import Pick from '../model/pick'
 import { Logtail } from "@logtail/node";
 import { getTeamWinner, getUpdateSelection, setSelectionTeamWinner, updateStats } from "../misc/utils";
 import passport from "passport";
+import { cancelWager } from "../queries/cancelWager";
 const TwitterStrategy = require("@superfaceai/passport-twitter-oauth2").Strategy;
 
 export const PASSPORT_SECRET = process.env.PASSPORT_SECRET!;
@@ -42,6 +44,7 @@ export const FUND_KEYPAIR = Keypair.fromSeed(FUND_SEED);
 export const PAYOUT_PRECISION = 100;
 export const FEE_MULTIPLIER = 0.931; // 6.9% off each bet
 export const PICKEM_FEE_MULTIPLIER = 0.9;
+const VOLUME_DIFFERENCE_THRESHOLD = 0.07;
 
 export const ALGORITHM = "aes-192-cbc";
 export const SALT = process.env.SALT as string;
@@ -122,7 +125,35 @@ AGENDA.define("update status", async (job: Job) => {
 
   // Final check for missing txs before closing 
   if(status === 'closed') {
-      const updatedWager: WagerSchema | null = await Wager.findById(wager._id);
+      const updatedWager: WagerSchema | null = await Wager.findById(wagerId);
+      
+      // TODO: Handle this?
+      if(!updatedWager) {
+        return;
+      }
+
+      const selectionBets = updatedWager.selections.map(selection => 
+        updatedWager.placedBets.filter(bet => bet.selectionId === selection._id)
+      );
+      
+      // Must have 1 pick for each selection
+      if (selectionBets.some(bets => bets.length === 0)) {
+        await cancelWager(wagerId);
+        return;
+      }
+      
+      const selectionBetTotals = selectionBets.map(bets =>
+        bets.flatMap(bet => bet.amounts.map(amount => amount.amount))
+             .reduce((a, b) => a + b, 0)
+      );
+      
+      const [total1, total2] = selectionBetTotals;
+      const threshold = Math.min(total1, total2) * VOLUME_DIFFERENCE_THRESHOLD; // 7% of the smaller total
+
+      if (Math.abs(total1 - total2) < threshold) {
+        await cancelWager(wagerId);
+        return;
+      }
 
       if(updatedWager) {
         for(const selection of updatedWager.selections) {

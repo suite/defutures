@@ -191,7 +191,7 @@ const getNFTImage = async (wager: WagerSchema): Promise<Image | null> => {
             return await getCustomUrlImage(hasCustomUrls.custom_urls);
         }
 
-        const wagerCollection = wager.collection;
+        const wagerCollection = wager.collectionName;
         if(wagerCollection) {
             const assets = await getAssets();
             const leagueObj = assets.find((asset) => asset.league === wagerCollection);

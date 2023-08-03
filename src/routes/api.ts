@@ -315,7 +315,7 @@ router.post('/createWager', creatorMiddleware, async (req, res) => {
     const { title,
         description,
         league,
-        collection,
+        collectionName,
         selection1,
         selection1Record, 
         selection2, 
@@ -324,7 +324,7 @@ router.post('/createWager', creatorMiddleware, async (req, res) => {
         endDate, gameDate, token, metadata } = req.body;
 
     if (!(title && description && selection1 && selection2 && 
-         startDate && endDate && gameDate && token && collection) || 
+         startDate && endDate && gameDate && token && collectionName) || 
         new Date(startDate) > new Date(endDate)) // Ensures end date > start date
         {
             res.status(400).send({ message: "Invalid input", data: {} });
@@ -334,7 +334,7 @@ router.post('/createWager', creatorMiddleware, async (req, res) => {
     const result = await createWager(title,
         description,
         league, 
-        collection,
+        collectionName,
         selection1,
         selection1Record, 
         selection2,

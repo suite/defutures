@@ -275,7 +275,7 @@ export const countLiveGames = async (token: string, selection1Title: string, sel
     try {
       const count = await Wager.countDocuments({
         $and: [
-          { status: 'live' },
+          { status: { $in: ['live', 'upcoming'] } },
           { token: token },
           {
             $and: [
@@ -290,4 +290,4 @@ export const countLiveGames = async (token: string, selection1Title: string, sel
     } catch (error) {
       return null;
     }
-};
+  };

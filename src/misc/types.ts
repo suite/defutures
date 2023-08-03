@@ -46,7 +46,7 @@ export type WagerSchema = {
     finalScore: string,
     status: 'upcoming' | 'live' | 'closed' | 'completed' | 'cancelled',
     league: string,
-    collection: string,
+    collectionName: string,
     selections: Array<WagerSelectionSchema>,
     startDate: number,
     endDate: number,

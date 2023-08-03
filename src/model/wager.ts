@@ -52,7 +52,7 @@ const wagerSchema = new mongoose.Schema({
         default: 'upcoming'
     },
     league: { type: String },
-    collection: { type: String },
+    collectionName: { type: String },
     selections: { type: [wagerSelection] },
     startDate: { type: Number },
     endDate: { type: Number },

@@ -15,7 +15,7 @@ export function getUTCTime(date: Date): number {
 export default async function createWager(title: string,
     description: string, // fine
     league: string, // set collection name
-    collection: string,
+    collectionName: string,
     selection1: string, 
     selection1Record: string,
     selection2: string, 
@@ -49,7 +49,7 @@ export default async function createWager(title: string,
         if(!team1Image || !team2Image) throw new ServerError("Unable to find team image.");
 
         // Get NFT images
-        const collectionAssets = assets.find((asset) => asset.league === collection);
+        const collectionAssets = assets.find((asset) => asset.league === collectionName);
         if(!collectionAssets) throw new ServerError("Unable to find collectionAssets.");
 
         // Pick random NFT image
@@ -80,7 +80,7 @@ export default async function createWager(title: string,
             description,
             status: "upcoming",
             league,
-            collection,
+            collectionName,
             selections: [
                 {
                     title: selection1,
