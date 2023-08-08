@@ -52,35 +52,6 @@ export default async function createWager(title: string,
         // Make sure teams are not the same
         if(selection1 === selection2) throw new ServerError("Teams cannot be the same.");
 
-        // Get assets 
-        const assets = await getAssets();
-        if(assets.length === 0) throw new ServerError("Unable to get assets.");
-
-        // Get collection by league
-        const leagueAssets = assets.find((asset) => asset.league === league);
-        if(!leagueAssets) throw new ServerError("Unable to find leagueAssets.");
-
-        // Get team by name
-        let team1Image;
-        let team2Image;
-        if(league === "custom") {
-            team1Image = leagueAssets.options[0].imageUrl;
-            team2Image = leagueAssets.options[1].imageUrl;
-        } else {
-            team1Image = leagueAssets.options.find((team) => team.name === selection1)?.imageUrl;
-            team2Image = leagueAssets.options.find((team) => team.name === selection2)?.imageUrl;
-        }
-
-        if(!team1Image || !team2Image) throw new ServerError("Unable to find team image.");
-
-        // Get NFT images
-        const collectionAssets = assets.find((asset) => asset.league === collectionName);
-        if(!collectionAssets) throw new ServerError("Unable to find collectionAssets.");
-
-        // Pick random NFT image
-        let nft1Image = collectionAssets.options[Math.floor(Math.random() * collectionAssets.options.length)].imageUrl;
-        let nft2Image = collectionAssets.options[Math.floor(Math.random() * collectionAssets.options.length)].imageUrl;
-
         // Wager validation
         if(!isAdmin) {
             // Check if user already has a game live
@@ -109,7 +80,36 @@ export default async function createWager(title: string,
         // Cannot be more than 1 month in advance
         if(isOneMonthAdvance(new Date(), new Date(endDate))) {
             throw new ServerError("Game cannot be more than 1 month in advance.")
-        } 
+        }
+        
+         // Get assets 
+        const assets = await getAssets();
+        if(assets.length === 0) throw new ServerError("Unable to get assets.");
+
+        // Get collection by league
+        const leagueAssets = assets.find((asset) => asset.league === league);
+        if(!leagueAssets) throw new ServerError("Unable to find leagueAssets.");
+
+        // Get team by name
+        let team1Image;
+        let team2Image;
+        if(league === "custom") {
+            team1Image = leagueAssets.options[0].imageUrl;
+            team2Image = leagueAssets.options[1].imageUrl;
+        } else {
+            team1Image = leagueAssets.options.find((team) => team.name === selection1)?.imageUrl;
+            team2Image = leagueAssets.options.find((team) => team.name === selection2)?.imageUrl;
+        }
+
+        if(!team1Image || !team2Image) throw new ServerError("Unable to find team image.");
+
+        // Get NFT images
+        const collectionAssets = assets.find((asset) => asset.league === collectionName);
+        if(!collectionAssets) throw new ServerError("Unable to find collectionAssets.");
+
+        // Pick random NFT image
+        let nft1Image = collectionAssets.options[Math.floor(Math.random() * collectionAssets.options.length)].imageUrl;
+        let nft2Image = collectionAssets.options[Math.floor(Math.random() * collectionAssets.options.length)].imageUrl;
 
         const currentTime = new Date().getTime()
 
