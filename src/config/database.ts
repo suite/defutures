@@ -150,11 +150,11 @@ AGENDA.define("update status", async (job: Job) => {
       );
       
       const [total1, total2] = selectionBetTotals;
-      const threshold = Math.min(total1, total2) * VOLUME_DIFFERENCE_THRESHOLD; // 7% of the smaller total
 
-      if (Math.abs(total1 - total2) < threshold) {
-        await cancelWager(wagerId);
-        return;
+      if(!(total1 >= total2 * VOLUME_DIFFERENCE_THRESHOLD 
+        && total2 >= total1 * VOLUME_DIFFERENCE_THRESHOLD)) {
+          await cancelWager(wagerId);
+          return;
       }
 
       if(updatedWager) {
