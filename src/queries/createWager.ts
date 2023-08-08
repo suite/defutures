@@ -103,7 +103,7 @@ export default async function createWager(title: string,
 
         // Cannot be more than 1 month in advance
         if(isOneMonthAdvance(new Date(), new Date(endDate))) {
-            throw new ServerError("Wager cannot be more than 1 month in advance.")
+            throw new ServerError("Game cannot be more than 1 month in advance.")
         } 
 
         const currentTime = new Date().getTime()
