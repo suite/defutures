@@ -39,26 +39,6 @@ router.post('/createPick', async (req, res) => {
     res.status(200).json({ message: "Created pick", data: result })    
 })
 
-router.post('/declareWinner', async (req, res) => { 
-    const { wagerId, selectionId, finalScore } = req.body;
-
-    const selectionObjectId = getObjectId(selectionId);
-    const wagerObjectId = getObjectId(wagerId);
-
-    if(!selectionObjectId || !wagerObjectId) {
-        res.status(400).send({ message: "Invalid input", data: {} });
-        return;
-    }
-
-    const result = await declareWagerWinner(wagerId, selectionObjectId, finalScore)
-
-    if(result instanceof ServerError) {
-        return res.status(400).json({ message: result.message, data: result }) 
-    }
-
-    res.status(200).json({ message: "Declared winner", data: result })
-})
-
 router.post('/declarePickWinners', async (req, res) => { 
     const { pickId, picks } = req.body;
 

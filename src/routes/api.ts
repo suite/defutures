@@ -20,6 +20,7 @@ import getAssets from "../queries/getAssets";
 import User from "../model/user";
 import { creatorMiddleware, getStatus } from "../queries/getStatus";
 import createWager from "../queries/createWager";
+import declareWagerWinner from "../queries/declareWagerWinner";
 
 const router = express.Router();
 
@@ -354,6 +355,33 @@ router.post('/createWager', creatorMiddleware, async (req, res) => {
     }
 
     res.status(200).json({ message: "Created wager", data: result })    
+});
+
+router.post('/declareWinner', creatorMiddleware, async (req, res) => {
+    const creatorUser = await getStatus(req);
+
+    if (!creatorUser) {
+        res.status(400).send({ message: "No user data found", data: {} });
+        return;
+    }
+
+    const { wagerId, selectionId, finalScore } = req.body;
+
+    const selectionObjectId = getObjectId(selectionId);
+    const wagerObjectId = getObjectId(wagerId);
+
+    if(!selectionObjectId || !wagerObjectId) {
+        res.status(400).send({ message: "Invalid input", data: {} });
+        return;
+    }
+
+    const result = await declareWagerWinner(creatorUser, wagerObjectId, selectionObjectId, finalScore)
+
+    if(result instanceof ServerError) {
+        return res.status(400).json({ message: result.message, data: result }) 
+    }
+
+    res.status(200).json({ message: "Declared winner", data: result })
 })
 
 export default router;
