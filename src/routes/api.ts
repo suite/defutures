@@ -38,9 +38,12 @@ router.post('/generateNonce', async (req, res) => {
         return;
     }
 
-    const nonce = crypto.randomBytes(16).toString('hex');
+    let nonce = nonces[publicKey];
+    if(!nonce) {
+        nonce = crypto.randomBytes(16).toString('hex');
     
-    nonces[publicKey] = nonce;
+        nonces[publicKey] = nonce;
+    }
 
     res.status(200).json({ nonce })
 })
@@ -321,7 +324,7 @@ router.post('/createWager', creatorMiddleware, async (req, res) => {
         selection2, 
         selection2Record,
         startDate, 
-        endDate, gameDate, token, metadata } = req.body;
+        endDate, gameDate, token } = req.body;
 
     if (!(title && description && selection1 && selection2 && 
          startDate && endDate && gameDate && token && collectionName) || 
@@ -343,8 +346,7 @@ router.post('/createWager', creatorMiddleware, async (req, res) => {
         endDate, 
         gameDate,
         creatorUser,
-        token,
-        metadata);
+        token);
 
     if(result instanceof ServerError) {
         return res.status(400).json({ message: result.message, data: result }) 
