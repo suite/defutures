@@ -61,7 +61,8 @@ const wagerSchema = new mongoose.Schema({
     airdropProgress: { type: Boolean, default: false },
     metadata: { type: [], default: [] },
     creator: { type: userSchema }, 
-    token: { type: String }
+    token: { type: String },
+    isAdmin: { type: Boolean, default: false },
     /*
     ex: 
     metadata: [

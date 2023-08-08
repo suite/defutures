@@ -24,6 +24,9 @@ export default async function createWager(title: string,
     endDate: number, gameDate: number, creator: WagerUser, token: string): Promise<WagerSchema | ServerError> {
 
     try {
+        // Check if admin game
+        const isAdmin = creator.roles.includes("ADMIN");
+
         // Mark default as not hidden
         const metadata = [{
             is_hidden: false
@@ -62,15 +65,17 @@ export default async function createWager(title: string,
         let nft2Image = collectionAssets.options[Math.floor(Math.random() * collectionAssets.options.length)].imageUrl;
 
         // Wager validation
-        // Check if live game exists with teams and tokens
-        const sameGameAmount = await countLiveGames(token, selection1, selection2);
+        if(!isAdmin) {
+            // Check if live game exists with teams and tokens
+            const sameGameAmount = await countLiveGames(token, selection1, selection2);
 
-        if(sameGameAmount === null) {
-            throw new ServerError("Error checking if live game exists.")
-        }
+            if(sameGameAmount === null) {
+                throw new ServerError("Error checking if live game exists.")
+            }
 
-        if(sameGameAmount > 0) {
-            throw new ServerError("Live game with same teams and token already exists.")
+            if(sameGameAmount > 0) {
+                throw new ServerError("Live game with same teams and token already exists.")
+            }
         }
 
         // Cannot be more than 1 month in advance
@@ -107,7 +112,8 @@ export default async function createWager(title: string,
             gameDate,
             metadata,
             creator,
-            token
+            token,
+            isAdmin
         }
 
         const wager: WagerSchema = await Wager.create(wagerOptions)

@@ -56,7 +56,8 @@ export type WagerSchema = {
     airdropProgress: boolean,
     metadata: Array<any>,
     creator: WagerUser,
-    token: string
+    token: string,
+    isAdmin: boolean
 }
 
 export type TokenBalanceResult = {

@@ -33,7 +33,7 @@ export const creatorMiddleware = async (req: express.Request, res: express.Respo
         }
 
         // if user doesnt have twitter linked
-        if(!creatorUser.twitterData) {
+        if(!creatorUser.twitterData && !creatorUser.roles.includes("ADMIN")) {
             return res.status(400).json({ message: "No Twitter account found", data: {} }) ;
         }
     
