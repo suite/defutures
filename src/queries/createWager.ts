@@ -21,9 +21,14 @@ export default async function createWager(title: string,
     selection2: string, 
     selection2Record: string,
     startDate: number, 
-    endDate: number, gameDate: number, creator: WagerUser, token: string, metadata?: Array<any>): Promise<WagerSchema | ServerError> {
+    endDate: number, gameDate: number, creator: WagerUser, token: string): Promise<WagerSchema | ServerError> {
 
     try {
+        // Mark default as not hidden
+        const metadata = [{
+            is_hidden: false
+        }];
+
         // Make sure teams are not the same
         if(selection1 === selection2) throw new ServerError("Teams cannot be the same.");
 
