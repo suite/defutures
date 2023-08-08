@@ -4,6 +4,8 @@ import { Request } from 'express';
 import express from 'express';
 import { WagerUser } from '../misc/types';
 import User from '../model/user';
+import Blacklist from '../model/blacklist';
+import { isUserBlacklisted } from '../misc/utils';
 
 export async function getStatus(req: Request): Promise<WagerUser | null>  {
     try {
@@ -30,6 +32,16 @@ export const creatorMiddleware = async (req: express.Request, res: express.Respo
 
         if(!creatorUser) {
             return res.status(400).json({ message: "No user data found", data: {} }) ;
+        }
+
+        const isBlacklisted = await isUserBlacklisted(creatorUser.publicKey, creatorUser.twitterData?.id);
+        
+        if(isBlacklisted === null) {
+            return res.status(400).json({ message: "Error checking blacklist", data: {} }) ;
+        }
+
+        if(isBlacklisted) {
+            return res.status(400).json({ message: "User is blacklisted", data: {} }) ;
         }
 
         // if user doesnt have twitter linked

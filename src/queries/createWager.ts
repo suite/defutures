@@ -3,8 +3,7 @@ import { WagerSchema, WagerUser } from "../misc/types";
 import createWagerEscrows from "./createWagerEscrows";
 import Wager from '../model/wager';
 import { ServerError } from "../misc/serverError";
-import User from "../model/user";
-import { countAllLiveOrUpcomingGames, countLiveGames, countLiveGamesForUser, isOneMonthAdvance, isUserBlacklisted } from "../misc/utils";
+import { countAllLiveOrUpcomingGames, countLiveGames, countLiveGamesForUser, isOneMonthAdvance } from "../misc/utils";
 import getAssets from "./getAssets";
 
 export function getUTCTime(date: Date): number {
@@ -24,12 +23,6 @@ export default async function createWager(title: string,
     endDate: number, gameDate: number, creator: WagerUser, token: string): Promise<WagerSchema | ServerError> {
 
     try {
-        // Check if user is blacklisted
-        const isBlacklisted = await isUserBlacklisted(creator.publicKey, creator.twitterData?.id);
-       
-        if(isBlacklisted === null) throw new ServerError("Unable to check if user is blacklisted.");
-        if(isBlacklisted) throw new ServerError("User is blacklisted.");
-
         // Check game cap
         const liveGameCount = await countAllLiveOrUpcomingGames();
 
