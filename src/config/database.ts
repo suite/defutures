@@ -52,6 +52,8 @@ export const KEY = process.env.KEY as string;
 
 export const RAPID_API = process.env.RAPID_API as string;
 
+export const LIVE_GAME_CAP = 10;
+
 // Change token type based  off cluster/clusterurl
 // Dust mint: DUSTawucrTsGU8hcqRdHDCbuYhCPADMLM2VcCb8VnFnQ
 export const TOKEN_MINT = new PublicKey(process.env.TOKEN_MINT as string)

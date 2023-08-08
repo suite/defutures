@@ -1,10 +1,10 @@
-import { AGENDA, LOGTAIL } from "../config/database";
+import { AGENDA, LIVE_GAME_CAP, LOGTAIL } from "../config/database";
 import { WagerSchema, WagerUser } from "../misc/types";
 import createWagerEscrows from "./createWagerEscrows";
 import Wager from '../model/wager';
 import { ServerError } from "../misc/serverError";
 import User from "../model/user";
-import { countLiveGames, isOneMonthAdvance } from "../misc/utils";
+import { countAllLiveOrUpcomingGames, countLiveGames, countLiveGamesForUser, isOneMonthAdvance } from "../misc/utils";
 import getAssets from "./getAssets";
 
 export function getUTCTime(date: Date): number {
@@ -24,6 +24,12 @@ export default async function createWager(title: string,
     endDate: number, gameDate: number, creator: WagerUser, token: string): Promise<WagerSchema | ServerError> {
 
     try {
+        // Check game cap
+        const liveGameCount = await countAllLiveOrUpcomingGames();
+
+        if(liveGameCount === null) throw new ServerError("Unable to get live game count.");
+        if(liveGameCount >= LIVE_GAME_CAP) throw new ServerError("Game cap reached.");
+
         // Check if admin game
         const isAdmin = creator.roles.includes("ADMIN");
 
@@ -66,6 +72,17 @@ export default async function createWager(title: string,
 
         // Wager validation
         if(!isAdmin) {
+            // Check if user already has a game live
+            const hasGameLive = await countLiveGamesForUser(creator.publicKey);
+
+            if(hasGameLive === null) {
+                throw new ServerError("Error checking if user has live game.")
+            }
+
+            if(hasGameLive > 0) {
+                throw new ServerError("User already has a live game.")
+            }
+
             // Check if live game exists with teams and tokens
             const sameGameAmount = await countLiveGames(token, selection1, selection2);
 

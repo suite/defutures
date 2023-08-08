@@ -290,4 +290,29 @@ export const countLiveGames = async (token: string, selection1Title: string, sel
     } catch (error) {
       return null;
     }
-  };
+};
+
+export const countLiveGamesForUser = async (publicKey: string): Promise<number | null> => {
+    try {
+      const count = await Wager.countDocuments({
+        'creator.publicKey': publicKey,
+        status: { $in: ['live', 'upcoming'] },
+      });
+
+      return count;
+    } catch (error) {
+      return null;
+    }
+};
+
+export const countAllLiveOrUpcomingGames = async (): Promise<number | null> => {
+    try {
+      const count = await Wager.countDocuments({
+        status: { $in: ['live', 'upcoming'] },
+      });
+
+      return count;
+    } catch (error) {
+      return null;
+    }
+};
