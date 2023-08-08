@@ -293,18 +293,30 @@ export const countLiveGames = async (token: string, selection1Title: string, sel
     }
 };
 
-export const countLiveGamesForUser = async (publicKey: string): Promise<number | null> => {
+export const countLiveGamesForUser = async (publicKey?: string, twitterId?: string): Promise<number | null> => {
     try {
-      const count = await Wager.countDocuments({
-        'creator.publicKey': publicKey,
-        status: { $in: ['live', 'upcoming'] },
-      });
+        const orConditions: any[] = [];
 
-      return count;
+        if (publicKey) {
+            orConditions.push({ 'creator.publicKey': publicKey });
+        }
+
+        if (twitterId) {
+            orConditions.push({ 'creator.twitterData.id': twitterId });
+        }
+
+        if(orConditions.length === 0) return null;
+
+        const count = await Wager.countDocuments({
+            $or: orConditions,
+            status: { $in: ['live', 'upcoming'] },
+        });
+
+        return count;
     } catch (error) {
-      return null;
+        return null;
     }
-};
+}
 
 export const countAllLiveOrUpcomingGames = async (): Promise<number | null> => {
     try {

@@ -48,7 +48,7 @@ export default async function createWager(title: string,
         // Wager validation
         if(!isAdmin) {
             // Check if user already has a game live
-            const hasGameLive = await countLiveGamesForUser(creator.publicKey);
+            const hasGameLive = await countLiveGamesForUser(creator.publicKey, creator.twitterData?.id);
 
             if(hasGameLive === null) {
                 throw new ServerError("Error checking if user has live game.")
