@@ -24,7 +24,7 @@ export default async function sendFees(wagerId: ObjectId) {
 
         if(!wager.isAdmin) {
             // Send half to FUND_KEYPAIR.publicKey, and have to wager.creator.publickEy
-            const firstBatch = walletBalance / 2;
+            const firstBatch = Math.floor((walletBalance / 2) * 100) / 100;
             const secondBatch = walletBalance - firstBatch;
 
             const tx1 = await transferSplToken(winnerWalletKeypair, FUND_KEYPAIR.publicKey, firstBatch);

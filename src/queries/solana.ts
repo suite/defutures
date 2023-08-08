@@ -50,7 +50,7 @@ export async function transferSplToken(fromKeypair: web3.Keypair, toPubkey: web3
     }
 }
 
-function getTransferAmount(amount: number) {
+export function getTransferAmount(amount: number) {
     return Math.floor(amount * web3.LAMPORTS_PER_SOL)
 }
 
