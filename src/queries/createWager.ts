@@ -36,6 +36,11 @@ export default async function createWager(title: string,
         if(liveGameCount === null) throw new ServerError("Unable to get live game count.");
         if(liveGameCount >= LIVE_GAME_CAP) throw new ServerError("Game cap reached.");
 
+        // Date check
+        if(new Date(startDate) > new Date(endDate)) { // Ensures end date > start date
+            throw new ServerError("Game cannot be in the past.");
+        }
+
         // Check if admin game
         const isAdmin = creator.roles.includes("ADMIN");
 
