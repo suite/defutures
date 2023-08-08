@@ -35,7 +35,7 @@ router.get("/callback/twitter",
                         id: req.twitterUser.id,
                         username: req.twitterUser.username,
                         displayName: req.twitterUser.displayName,
-                        profileImage: req.twitterUser.photos[0].value,
+                        profileImage: req.twitterUser.photos[0].value.replace("_normal", ""),
                     }
                 }
             }, { upsert: true, new: true });
