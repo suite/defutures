@@ -10,6 +10,7 @@ import axios, { Method } from "axios";
 import { LOGTAIL, RAPID_API } from "../config/database";
 import Pick from '../model/pick';
 import Wager from '../model/wager';
+import Blacklist from "../model/blacklist";
 import Stats from '../model/stats';
 import bs58 from "bs58";
 import nacl from "tweetnacl";
@@ -314,5 +315,29 @@ export const countAllLiveOrUpcomingGames = async (): Promise<number | null> => {
       return count;
     } catch (error) {
       return null;
+    }
+};
+
+export const isUserBlacklisted = async (publicKey?: string, twitterId?: string): Promise<boolean | null> => {
+    let query: any[] = [];
+
+    if (publicKey) {
+        query.push({ publicKey: publicKey });
+    }
+
+    if (twitterId) {
+        query.push({ twitterId: twitterId });
+    }
+
+    try {
+        if (query.length === 0) {
+            return null;
+        }
+
+        const result = await Blacklist.findOne({ $or: query });
+
+        return Boolean(result);
+    } catch (error) {
+        return null;
     }
 };
