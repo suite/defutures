@@ -5,6 +5,7 @@ import { WagerSchema } from "../misc/types";
 import { getWagerEscrowWallet } from "../misc/utils";
 import Wager from '../model/wager';
 import { getBalance, transferSplToken } from "./solana";
+import { PublicKey } from "@solana/web3.js";
 
 export default async function sendFees(wagerId: ObjectId) {
     try {
@@ -21,11 +22,27 @@ export default async function sendFees(wagerId: ObjectId) {
         const winnerWalletKeypair = await getWagerEscrowWallet(winningSelection._id);
         const walletBalance = await getBalance(winnerWalletKeypair.publicKey)
 
-        const tx = await transferSplToken(winnerWalletKeypair, FUND_KEYPAIR.publicKey, walletBalance);
+        if(!wager.isAdmin) {
+            // Send half to FUND_KEYPAIR.publicKey, and have to wager.creator.publickEy
+            const firstBatch = walletBalance / 2;
+            const secondBatch = walletBalance - firstBatch;
 
-        LOGTAIL.info(`Transfering ${walletBalance} from ${winnerWalletKeypair.publicKey.toString()} to ${FUND_KEYPAIR.publicKey.toString()} tx: ${tx.signature}`)
+            const tx1 = await transferSplToken(winnerWalletKeypair, FUND_KEYPAIR.publicKey, firstBatch);
 
-        if(tx.error !== -1) throw new ServerError(`Err transfering Solana. Tx: ${tx.signature}`);
+            LOGTAIL.info(`Transfering ${firstBatch} from ${winnerWalletKeypair.publicKey.toString()} to ${FUND_KEYPAIR.publicKey.toString()} tx: ${tx1.signature}`)
+
+            if(tx1.error !== -1) throw new ServerError(`Err transfering Solana. Tx: ${tx1.signature}`);
+
+            const tx2 = await transferSplToken(winnerWalletKeypair, new PublicKey(wager.creator.publicKey), secondBatch);
+            
+            LOGTAIL.info(`Transfering ${secondBatch} from ${winnerWalletKeypair.publicKey.toString()} to ${wager.creator.publicKey.toString()} tx: ${tx2.signature}`)
+        } else {
+            const tx = await transferSplToken(winnerWalletKeypair, FUND_KEYPAIR.publicKey, walletBalance);
+
+            LOGTAIL.info(`Transfering ${walletBalance} from ${winnerWalletKeypair.publicKey.toString()} to ${FUND_KEYPAIR.publicKey.toString()} tx: ${tx.signature}`)
+    
+            if(tx.error !== -1) throw new ServerError(`Err transfering Solana. Tx: ${tx.signature}`);
+        }
 
         LOGTAIL.info(`Moved fee funds for wager ${wagerId}`)
 
