@@ -133,9 +133,9 @@ AGENDA.define("update status", async (job: Job) => {
       }
 
       const selectionBets = updatedWager.selections.map(selection => 
-        updatedWager.placedBets.filter(bet => bet.selectionId === selection._id)
+        updatedWager.placedBets.filter(bet => JSON.stringify(bet.selectionId) === JSON.stringify(selection._id))
       );
-      
+
       // Must have 1 pick for each selection
       if (selectionBets.some(bets => bets.length === 0)) {
         await cancelWager(wagerId);
