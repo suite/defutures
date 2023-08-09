@@ -51,7 +51,6 @@ export const creatorMiddleware = async (req: express.Request, res: express.Respo
     
         if(creatorUser.roles.includes("CREATOR") || 
             creatorUser.roles.includes("ADMIN")) {
-            req.user = creatorUser;
             return next();
         }
 

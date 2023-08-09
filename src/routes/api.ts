@@ -309,7 +309,7 @@ router.get('/assets', async (req, res) => {
 });
 
 router.post('/createWager', creatorMiddleware, async (req, res) => {
-    const creatorUser = req.user;
+    const creatorUser = await getStatus(req);
 
     if (!creatorUser) {
         res.status(400).send({ message: "No user data found", data: {} });
@@ -347,7 +347,7 @@ router.post('/createWager', creatorMiddleware, async (req, res) => {
         startDate, 
         endDate, 
         gameDate,
-        creatorUser as WagerUser,
+        creatorUser,
         token);
 
     if(result instanceof ServerError) {
@@ -358,7 +358,7 @@ router.post('/createWager', creatorMiddleware, async (req, res) => {
 });
 
 router.post('/declareWinner', creatorMiddleware, async (req, res) => {
-    const creatorUser = req.user;
+    const creatorUser = await getStatus(req);
 
     if (!creatorUser) {
         res.status(400).send({ message: "No user data found", data: {} });
@@ -375,7 +375,7 @@ router.post('/declareWinner', creatorMiddleware, async (req, res) => {
         return;
     }
 
-    const result = await declareWagerWinner(creatorUser as WagerUser, wagerObjectId, selectionObjectId, finalScore)
+    const result = await declareWagerWinner(creatorUser, wagerObjectId, selectionObjectId, finalScore)
 
     if(result instanceof ServerError) {
         return res.status(400).json({ message: result.message, data: result }) 
