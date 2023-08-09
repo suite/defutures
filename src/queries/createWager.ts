@@ -48,6 +48,7 @@ export default async function createWager(title: string,
         // Wager validation
         if(!isAdmin) {
             // Check if user already has a game live
+            // ROLE-CHECK: Publickey + twitter id
             const hasGameLive = await countLiveGamesForUser(creator.publicKey, creator.twitterData?.id);
 
             if(hasGameLive === null) {

@@ -19,6 +19,7 @@ export default async function declareWagerWinner(creator: WagerUser, wagerId: Ob
 
         // Ensure user created game
         if(!creator.roles.includes("ADMIN")) {
+            // ROLE-CHECK: Publickey check for manage
             if(creator.publicKey !== wager.creator.publicKey) {
                 throw new ServerError("You are not the creator of this wager.");
             }
