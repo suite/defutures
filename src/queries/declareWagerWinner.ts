@@ -1,6 +1,6 @@
 import { ObjectId } from "mongodb";
 import { WagerSchema, WagerUser, WagerWalletSchema } from "../misc/types";
-import { getKeypair, getBalance, transferSplToken } from "./solana";
+import { getKeypair, getBalance, transferToken } from "./solana";
 import WagerWallet from '../model/wagerWallet';
 import Wager from '../model/wager';
 import { PublicKey } from "@solana/web3.js";
@@ -37,9 +37,9 @@ export default async function declareWagerWinner(creator: WagerUser, wagerId: Ob
     
         const loserWalletKeypair = await getWagerEscrowWallet(losingSelection._id);
 
-        const loserWalletBalance = await getBalance(loserSelectionPubkey)
+        const loserWalletBalance = await getBalance(loserSelectionPubkey, wager.token);
 
-        const tx = await transferSplToken(loserWalletKeypair, winnerSelectionPubkey, loserWalletBalance);
+        const tx = await transferToken(loserWalletKeypair, winnerSelectionPubkey, loserWalletBalance, wager.token);
 
         LOGTAIL.info(`Transfering ${loserWalletBalance} from ${loserSelectionPubkey.toString()} to ${winnerSelectionPubkey.toString()} tx: ${tx.signature}`)
 

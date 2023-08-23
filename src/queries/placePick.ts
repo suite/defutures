@@ -43,7 +43,7 @@ export default async function placePick(pickId: ObjectId, pickedTeams: Array<Obj
         if(!validPickedTeams) throw new ServerError("Invalid team selection.")
 
         // Confirm signature (confirms balance diff, publickey)
-        const amountBet = await getTokenBalanceChange(signature, pickPubkey);
+        const amountBet = await getTokenBalanceChange(signature, pickPubkey, "DUST");
 
         if(amountBet === null) {
             throw new ServerError("Invalid transaction signature");

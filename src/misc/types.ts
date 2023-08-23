@@ -1,6 +1,14 @@
 import { Keypair, PublicKey } from "@solana/web3.js"
 import { ObjectId } from "mongodb"
-import { ServerError } from "./serverError"
+import { USE_DEV } from "../config/database";
+
+export type SplToken = 'DUST' | "USDC";
+export type Token = 'SOL' | SplToken;
+
+export type TokenDetails = {
+    publicKey: PublicKey;
+    decimals: number;
+};
 
 export type WagerSelectionSchema = {
     _id: ObjectId,
@@ -56,14 +64,15 @@ export type WagerSchema = {
     airdropProgress: boolean,
     metadata: Array<any>,
     creator: WagerUser,
-    token: string,
+    token: Token,
     isAdmin: boolean
 }
 
 export type TokenBalanceResult = {
     amount: number,
     timestamp: Date | undefined,
-    userPublicKey: string
+    userPublicKey: string,
+    token: Token
 }
 
 export type WagerWalletSchema = {
@@ -80,7 +89,7 @@ export type PickWalletSchema = {
     privateKey: string
 }
 
-export type SplTransferResult = {
+export type TokenTransferResult = {
     signature?: string,
     error?: number
 }

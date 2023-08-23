@@ -22,7 +22,9 @@ export default async function createWager(title: string,
     startDate: number, 
     endDate: number, gameDate: number, creator: WagerUser, token: string): Promise<WagerSchema | ServerError> {
 
-    try {
+    try {   
+        if(!["SOL", "DUST", "USDC"].includes(token)) throw new ServerError("Invalid token.");
+
         // Check game cap
         const liveGameCount = await countAllLiveOrUpcomingGames();
 

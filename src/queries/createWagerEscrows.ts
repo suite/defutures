@@ -1,20 +1,20 @@
 import * as splToken from "@solana/spl-token";
 import * as web3 from '@solana/web3.js';
 import { ObjectId } from "mongodb";
-import { WagerSchema } from "../misc/types";
+import { Token, WagerSchema } from "../misc/types";
 import crypto from "crypto";
 import WagerWallet from '../model/wagerWallet';
 import Wager from '../model/wager';
 import PickWallet from '../model/pickWallet'
 import Pick from '../model/pick'
-import { ALGORITHM, CONNECTION, FUND_KEYPAIR, KEY, LOGTAIL, SALT, TOKEN_MINT } from "../config/database";
+import { ALGORITHM, CONNECTION, FUND_KEYPAIR, KEY, LOGTAIL, SALT, TOKEN_MAP } from "../config/database";
 import { getPickEscrowWallet, getWagerEscrowWallet } from "../misc/utils";
 import pick from "../model/pick";
 const bip39 = require('bip39');
 
 export default async function createWagerEscrows(wager: WagerSchema): Promise<boolean> {
     for(const selection of wager.selections) {
-        const pubKey = await createWagerEscrow(selection._id);
+        const pubKey = await createWagerEscrow(selection._id, wager.token);
         if(pubKey === null) return false;
     }
     
@@ -22,7 +22,7 @@ export default async function createWagerEscrows(wager: WagerSchema): Promise<bo
 }
 
 // TODO: stress test 
-async function createWagerEscrow(selectionId: ObjectId): Promise<web3.PublicKey | null> {
+async function createWagerEscrow(selectionId: ObjectId, token: Token): Promise<web3.PublicKey | null> {
     try {
        const { newWallet, finalSecret } = await createWallet();
 
@@ -39,19 +39,24 @@ async function createWagerEscrow(selectionId: ObjectId): Promise<web3.PublicKey 
         // Ensures we can read in from database
         const createdKeyPair = await getWagerEscrowWallet(selectionId);
         
-        LOGTAIL.info(`Created keypair for selection ${selectionId} ${createdKeyPair.publicKey.toString()}`);
+        LOGTAIL.info(`Created keypair for selection ${selectionId} ${createdKeyPair.publicKey.toString()} we lit lmao`);
 
-        // Creates token account for mint
         let tokenAccount;
-        for (let i = 0; i < 5; i++) {
-            try {
-                tokenAccount = await splToken.getOrCreateAssociatedTokenAccount(CONNECTION, FUND_KEYPAIR, TOKEN_MINT, createdKeyPair.publicKey);
-                if (tokenAccount) {
-                    break; // exit loop if operation was successful
+        // Token check
+        if(token === "SOL") {
+            tokenAccount = 'derp';
+        } else {
+            // Creates token account for mint
+            for (let i = 0; i < 5; i++) {
+                try {
+                    tokenAccount = await splToken.getOrCreateAssociatedTokenAccount(CONNECTION, FUND_KEYPAIR, TOKEN_MAP[token].publicKey, createdKeyPair.publicKey);
+                    if (tokenAccount) {
+                        break; // exit loop if operation was successful
+                    }
+                } catch (err) {
+                    LOGTAIL.error(`Attempt ${i+1} failed: ${err}`);
+                    await new Promise(res => setTimeout(res, 1000)); // wait for 1 second before next try lmaoo
                 }
-            } catch (err) {
-                LOGTAIL.error(`Attempt ${i+1} failed: ${err}`);
-                await new Promise(res => setTimeout(res, 1000)); // wait for 1 second before next try
             }
         }
 
@@ -87,7 +92,7 @@ export async function createPickEscrow(pickId: ObjectId): Promise<web3.PublicKey
         LOGTAIL.info(`Created keypair for pick ${pickId} ${createdKeyPair.publicKey.toString()}`);
         
         // Creates token account for mint
-        const tokenAccount = await splToken.getOrCreateAssociatedTokenAccount(CONNECTION, FUND_KEYPAIR, TOKEN_MINT, createdKeyPair.publicKey);
+        const tokenAccount = await splToken.getOrCreateAssociatedTokenAccount(CONNECTION, FUND_KEYPAIR, TOKEN_MAP["DUST"].publicKey, createdKeyPair.publicKey);
 
         if(!tokenAccount) throw 'Error creating token account.'
 

@@ -10,6 +10,7 @@ import jwt from 'jsonwebtoken';
 import passport from "passport";
 import { WagerUser } from "./misc/types";
 import { getStatus } from "./queries/getStatus";
+import { getTokenBalanceChange } from "./queries/solana";
 
 const app = express();
 const port = process.env.PORT || 3001;
@@ -117,6 +118,20 @@ const authorization = async (req: express.Request, res: express.Response, next: 
 
 (async () => {
     await connectMongo();
+
+    console.log("Testing Solana calls...");
+
+    const sig1 = "q1j2PxBMbXxsqBucgYyPNziGaLWcKuZPabK5qix36XFE6fmsYayavWvTFwFq87jmf2zPGJUczjtX18hjJLLdASb";
+    const sig2 = "NSUjB4ndoYHworZr2ibhnir2SWnrLc3pP2MkSPwsvXSmBpk7vJDt46yLRaVibxJ5TQXz8ufNBiNiwrrzkn117Hu";
+
+    const escrow = "FwayagtQWf464RTYqguK3Mz4M3aGtdZ6LbyBaMJqJLZp";
+    const escrow2 = "DxN7Tawr7eyzYYGgJEojQZnaLu6bDw4wDK8oiAzVUnZL";
+
+    const exchange =  await getTokenBalanceChange(sig1, escrow, "DUST");
+    // const exchange2 = await getTokenBalanceChange(sig2, escrow2, "SOL");
+
+    console.log(`Exchange sig1: `, exchange);
+    // console.log(`Exchange2 sig2: `, exchange2);
 
     const corsOpts = { credentials: true, origin: [...CORS_ORIGIN.split(',')] }
 

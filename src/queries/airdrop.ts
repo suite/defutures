@@ -8,11 +8,10 @@ import { ServerError } from "../misc/serverError";
 import { AirdropAmount, WagerSchema, WagerWalletSchema } from "../misc/types";
 import { getWagerEscrowWallet } from "../misc/utils";
 import Wager from '../model/wager';
-import WagerWallet from '../model/wagerWallet';
-import { transferSplToken } from "./solana";
 import AsyncLock from 'async-lock';
 import { LOGTAIL } from "../config/database";
 import sendFees from "./sendFees";
+import { transferToken } from "./solana";
 
 const lock = new AsyncLock();
 
@@ -33,7 +32,7 @@ export default async function airdrop(wagerId: ObjectId) {
             for(const { amount, toPubkey, fromKeypair, selectionId } of airdropAmounts) {
                 LOGTAIL.info(`Airdropping ${amount} to ${toPubkey.toString()}.`);
 
-                const { signature, error } = await transferSplToken(fromKeypair, toPubkey, amount);
+                const { signature, error } = await transferToken(fromKeypair, toPubkey, amount, wager.token);
 
                 LOGTAIL.info(`Result: sig: ${signature} Err: ${error}`);
 

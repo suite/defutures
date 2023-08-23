@@ -35,7 +35,7 @@ export default async function placeBet(wagerId: ObjectId, selectionId: ObjectId,
         }
 
         // Confirm signature (confirms balance diff, publickey)
-        const amountBet = await getTokenBalanceChange(signature, wagerPubkey);
+        const amountBet = await getTokenBalanceChange(signature, wagerPubkey, wagerData.token);
 
         if(amountBet === null) {
             throw new ServerError("Invalid transaction signature");

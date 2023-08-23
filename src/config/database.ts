@@ -5,8 +5,7 @@ import { TwitterApi } from 'twitter-api-v2';
 const { MONGO_URL } = process.env;
 import Agenda, { Job } from "agenda";
 import { Connection, Keypair, PublicKey, clusterApiUrl, Cluster } from "@solana/web3.js";
-import createWagerEscrows from "../queries/createWagerEscrows";
-import { PickSchema, WagerSchema } from "../misc/types";
+import { PickSchema, SplToken, TokenDetails, WagerSchema } from "../misc/types";
 import findMissingEscrowTransactions from "../queries/findMissingEscrowTransactions";
 import Wager from '../model/wager';
 import Pick from '../model/pick'
@@ -32,9 +31,34 @@ export const AGENDA = new Agenda({ db: { address: MONGO_URL! }, maxConcurrency: 
 const CLUSTER = process.env.CLUSTER as Cluster || 'devnet';
 const CLUSTER_URL = process.env.CLUSTER_URL as string;
 
+export const USE_DEV = (process.env.USE_DEV as string).toLocaleLowerCase() === 'true' ? true : false;
+
+export const TOKEN_MAP: Record<SplToken, TokenDetails> = USE_DEV ? {
+  DUST: {
+      publicKey: new PublicKey("DUSTcnwRpZjhds1tLY2NpcvVTmKL6JJERD9T274LcqCr"),
+      decimals: 9
+  },
+  USDC: {
+      publicKey: new PublicKey("AkDWDJ37DqhLN95TL467NFAPixDTq1L6iXLJ1Boqznr1"),
+      decimals: 6
+  }
+} : {
+  DUST: {
+      publicKey: new PublicKey("DUSTawucrTsGU8hcqRdHDCbuYhCPADMLM2VcCb8VnFnQ"),
+      decimals: 9
+  },
+  USDC: {
+      publicKey: new PublicKey("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"),
+      decimals: 6
+  }
+};
+
+console.log(`Using devnet: ${USE_DEV}`)
+
 export const CONNECTION = new Connection(
-  CLUSTER_URL ? CLUSTER_URL : clusterApiUrl(CLUSTER),
-  'confirmed'
+  USE_DEV ? clusterApiUrl('devnet') :
+  (CLUSTER_URL ? CLUSTER_URL : clusterApiUrl(CLUSTER),
+  'confirmed')
 );
 
 const FUND_WALLET = process.env.FUND_WALLET as string;
@@ -56,7 +80,7 @@ export const LIVE_GAME_CAP = 10;
 
 // Change token type based  off cluster/clusterurl
 // Dust mint: DUSTawucrTsGU8hcqRdHDCbuYhCPADMLM2VcCb8VnFnQ
-export const TOKEN_MINT = new PublicKey(process.env.TOKEN_MINT as string)
+// export const TOKEN_MINT = new PublicKey(process.env.TOKEN_MINT as string)
 
 export const connectMongo = async () => {
   // Connecting to the database
@@ -160,7 +184,7 @@ AGENDA.define("update status", async (job: Job) => {
       if(updatedWager) {
         for(const selection of updatedWager.selections) {
           if(selection.publicKey) {
-              await findMissingEscrowTransactions(new PublicKey(selection.publicKey))
+              await findMissingEscrowTransactions(new PublicKey(selection.publicKey), updatedWager.token);
           }
         }
       }
@@ -206,7 +230,7 @@ AGENDA.define("check transactions", async (job: Job) => {
   for(const wager of liveWagers) {
       for(const selection of wager.selections) {
           if(selection.publicKey) {
-              await findMissingEscrowTransactions(new PublicKey(selection.publicKey))
+              await findMissingEscrowTransactions(new PublicKey(selection.publicKey), wager.token);
           }
       }
   }

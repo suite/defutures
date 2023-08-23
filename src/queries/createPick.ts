@@ -2,7 +2,7 @@ import { PickSchema, PickSelectionSchema } from "../misc/types";
 import { AGENDA, LOGTAIL } from "../config/database";
 import { ServerError } from "../misc/serverError";
 import Pick from '../model/pick';
-import createWagerEscrows, { createPickEscrow } from "./createWagerEscrows";
+import { createPickEscrow } from "./createWagerEscrows";
 
 export default async function createPick(title: string,
     description: string,
