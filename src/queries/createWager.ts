@@ -11,6 +11,20 @@ export function getUTCTime(date: Date): number {
     date.getUTCHours(), date.getUTCMinutes(), date.getUTCSeconds());
 }
 
+const startWagerWalletCreation = async (wager: WagerSchema) => {
+    try {
+        const createdEscrows = await createWagerEscrows(wager);
+        if(!createdEscrows) {
+            // Delete wager if error
+            await Wager.findByIdAndDelete(wager._id);
+    
+            LOGTAIL.error(`Error creating wager escrows for ${wager._id}`)
+        }
+    } catch (err) {
+        LOGTAIL.error(`Error running create wager escrows for ${wager._id}`)
+    }  
+}
+
 export default async function createWager(title: string,
     description: string, // fine
     league: string, // set collection name
@@ -19,8 +33,7 @@ export default async function createWager(title: string,
     selection1Record: string,
     selection2: string, 
     selection2Record: string,
-    startDate: number, 
-    endDate: number, gameDate: number, creator: WagerUser, token: string): Promise<WagerSchema | ServerError> {
+    gameDate: number, creator: WagerUser, token: string): Promise<WagerSchema | ServerError> {
 
     try {   
         if(!["SOL", "DUST", "USDC"].includes(token)) throw new ServerError("Invalid token.");
@@ -31,13 +44,15 @@ export default async function createWager(title: string,
         if(liveGameCount === null) throw new ServerError("Unable to get live game count.");
         if(liveGameCount >= LIVE_GAME_CAP) throw new ServerError("Game cap reached.");
 
-        // Date check
-        if(new Date(startDate) > new Date(endDate)) { // Ensures end date > start date
-            throw new ServerError("Game cannot be in the past.");
-        }
-
         // Check if admin game
         const isAdmin = creator.roles.includes("ADMIN");
+
+        // Date check
+        if(!isAdmin) {
+            if(new Date().getTime() + (1000 * 60 * 5) > new Date(gameDate).getTime()) { // Ensures end date > start date
+                throw new ServerError("Game cannot be in the past.");
+            }
+        }
 
         // Mark default as not hidden
         const metadata = [{
@@ -74,7 +89,7 @@ export default async function createWager(title: string,
         }
 
         // Cannot be more than 1 month in advance
-        if(isOneMonthAdvance(new Date(), new Date(endDate))) {
+        if(isOneMonthAdvance(new Date(), new Date(gameDate))) {
             throw new ServerError("Game cannot be more than 1 month in advance.")
         }
         
@@ -107,8 +122,6 @@ export default async function createWager(title: string,
         let nft1Image = collectionAssets.options[Math.floor(Math.random() * collectionAssets.options.length)].imageUrl;
         let nft2Image = collectionAssets.options[Math.floor(Math.random() * collectionAssets.options.length)].imageUrl;
 
-        const currentTime = new Date().getTime()
-
         const wagerOptions = {
             title,
             description,
@@ -131,8 +144,8 @@ export default async function createWager(title: string,
                     nftImageUrl: nft2Image
                 }
             ],
-            startDate,
-            endDate,
+            startDate: 0,
+            endDate: gameDate,
             gameDate,
             metadata,
             creator,
@@ -143,28 +156,21 @@ export default async function createWager(title: string,
         const wager: WagerSchema = await Wager.create(wagerOptions)
 
         // Create escrow wallet for the wager
-        const createdEscrows = await createWagerEscrows(wager);
-        if(!createdEscrows) {
-            // Delete wager if error
-            await Wager.findByIdAndDelete(wager._id);
-
-            throw new ServerError("Error creating wager wallet.");
-        }
+        startWagerWalletCreation(wager);
 
         // Schedule status' NOTE: Max agenda concurrency 20, keep in mind.
         // Schedule for future games
         // TODO: send websocket on live (or client side)
-        if(startDate > currentTime) {
-            await AGENDA.schedule(new Date(startDate), "update status", {
-                wagerId: wager._id,
-                status: 'live',
-                wager
-            });
-        } else {
-            await Wager.findByIdAndUpdate(wager._id, { status: 'live' })
-        }
+        const oneMinuteFromNow = new Date().getTime() + 60000;
+        await AGENDA.schedule(new Date(oneMinuteFromNow), "update status", {
+            wagerId: wager._id,
+            status: 'live',
+            wager
+        });
+
+        await Wager.findByIdAndUpdate(wager._id, { startDate: oneMinuteFromNow })
         
-        await AGENDA.schedule(new Date(endDate), "update status", {
+        await AGENDA.schedule(new Date(gameDate), "update status", {
             wagerId: wager._id,
             status: 'closed',
             wager
