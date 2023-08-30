@@ -10,7 +10,7 @@ const twitterData = new mongoose.Schema({
 export const userSchema = new mongoose.Schema({
     publicKey: { type: String },
     twitterData: { type: twitterData, default: null },
-    roles: { type: [String], enum: ['ADMIN', 'CREATOR', 'DEFAULT'], default: ['DEFAULT'] },
+    roles: { type: [String], enum: ['ADMIN', 'CREATOR', 'DEFAULT'], default: ['DEFAULT', 'CREATOR'] },
 });
 
 export default mongoose.model("user", userSchema);
