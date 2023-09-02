@@ -609,7 +609,7 @@ export const createBigWinnersImage = async (wager: WagerSchema): Promise<Buffer 
 
         // draw users
         let initialY = 460;
-        const initialX = 453
+        const initialX = 379;
         const radius = 80 / 2;
         for(const topBet of topThreeBets) {
             // Draw profile picture 
@@ -641,7 +641,7 @@ export const createBigWinnersImage = async (wager: WagerSchema): Promise<Buffer 
 
             // Set text color green
             ctx.fillStyle = "#43A047";
-            ctx.fillText(`+ ${topBet.totalWinAmount} ${wager.token}`, initialX + 700, initialY + 40);
+            ctx.fillText(`+ ${topBet.totalWinAmount} ${wager.token}`, initialX + 850, initialY + 40);
 
             ctx.restore();
 
