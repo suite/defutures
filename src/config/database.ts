@@ -57,9 +57,11 @@ console.log(`Using devnet: ${USE_DEV}`)
 
 export const CONNECTION = new Connection(
   USE_DEV ? clusterApiUrl('devnet') :
-  (CLUSTER_URL ? CLUSTER_URL : clusterApiUrl(CLUSTER),
-  'confirmed')
+  (CLUSTER_URL ? CLUSTER_URL : clusterApiUrl(CLUSTER)),
+  'confirmed'
 );
+
+
 
 const FUND_WALLET = process.env.FUND_WALLET as string;
 const FUND_SEED = new Uint8Array(FUND_WALLET.split(",").map((e: string) => parseInt(e))).slice(0,32);
