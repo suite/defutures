@@ -2,13 +2,17 @@ import { createCanvas, loadImage, registerFont, Image, CanvasRenderingContext2D 
 import fs from 'fs/promises';
 import { LOGTAIL, TWITTER } from '../config/database';
 
-import { WagerSchema } from './types';
+import { TweetType, WagerBetSchema, WagerSchema, WagerUser } from './types';
 import getAssets from '../queries/getAssets';
+import User from '../model/user';
 
 // Register fonts
-registerFont('./assets/gt-reg.ttf', { family: 'GT Pressura' });
-registerFont('./assets/gt-bold.ttf', { family: 'GT Pressura', weight: 'bold' });
+// Register fonts
+// registerFont('./assets/gt-reg.ttf', { family: 'GT Pressura' });
+// registerFont('./assets/gt-bold.ttf', { family: 'GT Pressura', weight: 'bold' });
 
+registerFont('./assets/PixelOperator.ttf', { family: 'GT Pressura' });
+registerFont('./assets/PixelOperator-Bold.ttf', { family: 'GT Pressura', weight: 'bold' });
 
 // TODO: replace with utils
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
@@ -127,29 +131,6 @@ const getImageWithRetry = async (imageUrl: string): Promise<Image | null> => {
     return null;
 }
 
-// const getMetaDataWithRetry = async (isDe: boolean, id: number): Promise<any | null> => {
-//     const dataUrl = isDe 
-//         ? `https://metadata.degods.com/g/${id}.json` 
-//         : `https://metadata.y00ts.com/y/${id}.json`;
-
-//     let retries = 0;
-//     while(retries < RETRY_AMOUNT) {
-//         retries++;
-
-//         try {
-//             const response = await fetch(dataUrl);
-//             const data = await response.json();
-//             return data;
-//         } catch (err) {
-//             // Sleep for 1500 ms
-//             console.log(err)
-//             await delay(ERR_TIMEOUT);
-//         }
-//     }
-
-//     return null;
-// }
-
 const getCustomUrlImage = async (custom_urls: Array<string>): Promise<Image | null> => {
     // Get random url from custom_urls
     const randomUrl = custom_urls[randomIntFromInterval(0, (custom_urls.length-1) || 0)];
@@ -208,7 +189,7 @@ const getNFTImage = async (wager: WagerSchema): Promise<Image | null> => {
         return await getY00tImage();
     } catch (err) {
         console.log(`Error getting NFT image: ${err}`);
-        LOGTAIL.error(`Error getting NFT image ${err}`)
+        // LOGTAIL.error(`Error getting NFT image ${err}`) TODO: UNCOIMMENT
         return null;
     }
 }
@@ -250,49 +231,46 @@ const getLines = (ctx: CanvasRenderingContext2D, text: string, maxWidth: number)
 }
 
 const workingColors = new Set();
-export const createTwitterImage = async (wager: WagerSchema, publicKey: string, betAmount: number, pickedTeam: string, otherTeam: string, username?: string): Promise<Buffer> => {
+
+
+
+// Place bet image creation
+export const createTwitterImage = async (wager: WagerSchema, publicKey: string, betAmount: number, pickedTeam: string, otherTeam: string, user?: WagerUser): Promise<Buffer> => {
     try {
         const canvas = createCanvas(1600, 900);
         const ctx = canvas.getContext('2d');
 
-        const text = `{} ${username || publicKey} {} picked {} ${pickedTeam} {} to beat ${otherTeam} with {} ${betAmount} DUST`;
+        // const text = `{} ${username || publicKey} {} picked {} ${pickedTeam} {} to beat ${otherTeam} with {} ${betAmount} DUST`;
+        const text = `picked {} ${pickedTeam} {} to beat ${otherTeam} with {} ${betAmount} DUST`;
         const lines = getLines(ctx, text, 100);
 
-        const lineHeight = 100;
-        const fontSize = 90;
+        const lineHeight = 120;
+        const fontSize = 120;
 
         const totalLineHeight = (lines.length) * (lineHeight);
     
         let textLineHeight = ((900 - totalLineHeight) / 2) + (fontSize);
         console.log(lines.length, totalLineHeight, textLineHeight)
 
+
+        // Set background color
+        const bgRgb = `255, 255, 255, 1`;
+        ctx.fillStyle = `rgba(${bgRgb})`;
+
+        console.log(`rgba(${bgRgb})`)
+        // ctx.fillRect(700, 0, canvas.width, canvas.height);
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
         const nftImage = await getNFTImage(wager);
         if(!nftImage) {
             throw new Error("Could not get y00t image");
         }
 
-        ctx.drawImage(nftImage, -200, 0, 900, 900);
+        ctx.drawImage(nftImage, -292, -1, 900, 900);
 
-        // Get background color
-        const { data } = ctx.getImageData(0, 450, 1, 1);
-
-        // Set background color
-        const bgRgb = `${data[0]}, ${data[1]}, ${data[2]}`;
-        ctx.fillStyle = `rgba(${bgRgb})`;
-
-        console.log(`rgba(${bgRgb})`)
-        // ctx.fillRect(700, 0, canvas.width, canvas.height);
-        ctx.fillRect(1600, 0, canvas.width, canvas.height);
 
         // Set text color
-        const textColor = `rgba(${BG_TEXT_COLORS[bgRgb] || "0, 0, 0"})`;
-
-        if(!BG_TEXT_COLORS[bgRgb]) {
-            console.log("Could not find text color for", bgRgb)
-        } else {
-            console.log(`working rgba(${bgRgb})`);
-            workingColors.add(bgRgb);
-        }
+        const textColor = `rgba(0, 0, 0)`;
 
         // Add in degen picks logo
         const logo = await loadImage('./assets/logo.png');
@@ -305,6 +283,38 @@ export const createTwitterImage = async (wager: WagerSchema, publicKey: string, 
         //     data[i] = Math.floor(data[i] * textMultiplier);
         // }
 
+        const usernamePfpDistance = 210;
+
+       // Variables
+        const imgX = 620;
+        const imgY = textLineHeight - usernamePfpDistance;
+        const imgSize = 80;
+        const radius = imgSize / 2;
+
+        // First, save the current state of the canvas
+        ctx.save();
+
+        // Draw a circle path
+        ctx.beginPath();
+        ctx.arc(imgX + radius, imgY + radius, radius, 0, Math.PI * 2, true);
+
+        // Clip to the current path
+        ctx.clip();
+
+        // Draw the image in the circle
+        const twitterImg = await loadImage(user?.twitterData?.profileImage || './assets/user-alt.png');
+        ctx.drawImage(twitterImg, imgX, imgY, imgSize, imgSize);
+
+        // Restore the canvas state
+        ctx.restore();
+
+        // Add in username next to image
+        ctx.font = `${60}px GT Pressura`;
+        ctx.fillStyle = textColor;
+        ctx.fillText(user?.twitterData?.username || publicKey, 720, textLineHeight - usernamePfpDistance + 52);
+
+
+
         // Add in who they bet on
         ctx.font = `${fontSize}px GT Pressura`;
         ctx.fillStyle = textColor;
@@ -313,7 +323,7 @@ export const createTwitterImage = async (wager: WagerSchema, publicKey: string, 
         for (let i = 0; i < lines.length; i++) {
             // Draw text word by word
             const words = lines[i].split(" ");
-            let startingX = 600;
+            let startingX = 620;
 
             for (let j = 0; j < words.length; j++) {
                 const word = words[j];
@@ -348,33 +358,355 @@ export const createTwitterImage = async (wager: WagerSchema, publicKey: string, 
     
         return buf;
     } catch (err) {
-        LOGTAIL.error(`Error creating image ${err}`)
+        LOGTAIL.error(`Error creating pick image ${err}`)
         await delay(ERR_TIMEOUT);
-        return await createTwitterImage(wager, publicKey, betAmount, pickedTeam, otherTeam, username);
+        return await createTwitterImage(wager, publicKey, betAmount, pickedTeam, otherTeam, user);
     }
 }
 
-export const tweetImage = async (wager: WagerSchema, publicKey: string, betAmount: number, pickedTeam: string, otherTeam: string, username?: string) => {
+
+function wrapText(context: CanvasRenderingContext2D, text: string, x: number, y: number, maxWidth: number, lineHeight: number): void {
+    const words = text.split(' ');
+    let line = '';
+  
+    for (let n = 0; n < words.length; n++) {
+      const testLine = line + words[n] + ' ';
+      const metrics = context.measureText(testLine);
+      const testWidth = metrics.width;
+  
+      if (testWidth > maxWidth && n > 0) {
+        context.fillText(line, x, y);
+        line = words[n] + ' ';
+        y += lineHeight;
+      } else {
+        line = testLine;
+      }
+    }
+    
+    context.fillText(line, x, y);
+}
+  
+export const createInitateGameTwitterImage = async (wager: WagerSchema): Promise<Buffer> => {
+    try {
+        const canvas = createCanvas(1600, 900);
+        const ctx = canvas.getContext('2d');
+
+        // const description = wager.description;
+        // const lines = getLines(ctx, description, 100);
+
+        // Set background color
+        const bgRgb = `255, 255, 255, 1`;
+        ctx.fillStyle = `rgba(${bgRgb})`;
+
+        console.log(`rgba(${bgRgb})`)
+        // ctx.fillRect(700, 0, canvas.width, canvas.height);
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+       // Fetch and draw the first NFT image
+        const nftImage = await getNFTImage(wager);
+        if(!nftImage) {
+            throw new Error("Could not get y00t image");
+        }
+
+        // Draw the first image at -450 x-axis
+        ctx.drawImage(nftImage, -450, -1, 900, 900);
+
+        // Fetch and draw the second NFT image
+        const nftImage1 = await getNFTImage(wager);
+        if(!nftImage1) {
+            throw new Error("Could not get y00t image");
+        }
+
+        // Save current state of the canvas
+        ctx.save();
+
+        // Translate to the pivot point of the image
+        ctx.translate(1600 + 450, 0);
+
+        // Scale horizontally by -1
+        ctx.scale(-1, 1);
+
+        // Draw the second image at 0 x-axis after scaling
+        ctx.drawImage(nftImage1, 0, -1, 900, 900);
+
+        // Restore the canvas state
+        ctx.restore();
+
+       
+
+        // Set the font size and type
+        const fontSize = 60;
+      
+
+        // Align the text to center and middle
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillStyle = "black";
+
+
+
+        const newFontSize: number = 120;
+        ctx.font = `bold ${newFontSize}px GT Pressura`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+
+        const newTextX: number = 1600 / 2; // center x-coordinate
+        const newTextY: number = 330; // 280 pixels down from the top
+        const maxWidth: number = 1100;
+        const lineHeight: number = 120; // You can adjust this value
+
+
+        const newText: string = wager.title;
+        const lines = getLines(ctx, newText, maxWidth);
+        const totalLineHeight = (lines.length) * (lineHeight);
+    
+        let textLineHeight = ((900 - totalLineHeight) / 2) + (fontSize);
+        
+        
+        // Use the wrapText function
+        wrapText(ctx, newText, newTextX, textLineHeight, maxWidth, lineHeight);
+
+        ctx.font = `${fontSize}px GT Pressura`;
+        
+        // Calculate the position to center the text
+        let textX = 1600 / 2; // center x-coordinate
+        let textY = textLineHeight-123; // 180 pixels down from the top
+
+        // Draw the text
+        ctx.fillText(wager.description, textX, textY);
+
+        // Load the logo image
+        const logo = await loadImage('./assets/logo.png');
+
+        // Calculate the position to center the logo
+        const centerX = 1600 / 2 - 140 / 2; // canvas width / 2 - logo width / 2
+        const centerY = textLineHeight-303; // down 20 pixels on the y-axis
+
+        // Draw the logo
+        ctx.drawImage(logo, centerX, centerY, 140, 140);
+
+        // ctx.drawImage(nftImage, -292, -1, 900, 900);
+        const imgData = canvas.toDataURL().replace(/^data:image\/\w+;base64,/, "");
+        const buf = Buffer.from(imgData, "base64");
+    
+        return buf;
+
+    } catch (err) {
+        LOGTAIL.error(`Error creating initate image ${err}`)
+        await delay(ERR_TIMEOUT);
+        return await createInitateGameTwitterImage(wager);
+    }
+}
+
+export const createBigWinnersImage = async (wager: WagerSchema): Promise<Buffer | null> => {
+    try {
+        const winningSelection = wager.selections.find((selection) => selection.winner === true);
+        if(!winningSelection) {
+            return null;
+        }
+
+        const winningBets = wager.placedBets.filter((bet) => JSON.stringify(bet.selectionId) === JSON.stringify(winningSelection._id));
+        if(winningBets.length < 3) {
+            return null;
+        }
+
+        // Calculate the sum of amounts for each winning bet
+        const winningBetsWithTotal = await Promise.all(
+            winningBets.map(async (bet) => {
+              const totalWinAmount = bet.winAmount;
+              const betUser = await User.findOne({ publicKey: bet.publicKey });
+              return {
+                bet,
+                totalWinAmount,
+                username: betUser?.twitterData?.username || formatPublicKey(bet.publicKey),
+                profileImage: betUser?.twitterData?.profileImage || './assets/user-alt.png',
+              };
+            })
+          );
+          
+  
+        // Sort the array based on totalAmount in descending order
+        const sortedBets = winningBetsWithTotal.sort((a, b) => b.totalWinAmount - a.totalWinAmount);
+    
+        const topThreeBets = sortedBets.slice(0, 3);
+
+        console.log(JSON.stringify(topThreeBets, null, 2));
+
+        const canvas = createCanvas(1600, 900);
+        const ctx = canvas.getContext('2d');
+
+
+        // fill it up nft images
+
+        const bgRgb = `255, 255, 255, 1`;
+        ctx.fillStyle = `rgba(${bgRgb})`;
+
+        console.log(`rgba(${bgRgb})`)
+        // ctx.fillRect(700, 0, canvas.width, canvas.height);
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+       // Fetch and draw the first NFT image
+        const nftImage = await getNFTImage(wager);
+        if(!nftImage) {
+            throw new Error("Could not get y00t image");
+        }
+
+        // Draw the first image at -450 x-axis
+        ctx.drawImage(nftImage, -450, -1, 900, 900);
+
+        // Fetch and draw the second NFT image
+        const nftImage1 = await getNFTImage(wager);
+        if(!nftImage1) {
+            throw new Error("Could not get y00t image");
+        }
+
+        // Save current state of the canvas
+        ctx.save();
+
+        // Translate to the pivot point of the image
+        ctx.translate(1600 + 450, 0);
+
+        // Scale horizontally by -1
+        ctx.scale(-1, 1);
+
+        // Draw the second image at 0 x-axis after scaling
+        ctx.drawImage(nftImage1, 0, -1, 900, 900);
+
+        // Restore the canvas state
+        ctx.restore();
+
+        // Load the logo image
+        const logo = await loadImage('./assets/logo.png');
+
+        // Calculate the position to center the logo
+        const centerX = 1600 / 2 - 140 / 2; // canvas width / 2 - logo width / 2
+        const centerY = 20; // down 20 pixels on the y-axis
+
+        // Draw the logo
+        ctx.drawImage(logo, centerX, centerY, 140, 140);
+    
+        // Align the text to center and middle
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillStyle = "black";
+        ctx.font = `${60}px GT Pressura`;
+
+        // Calculate the position to center the text
+        let textX = 1600 / 2; // center x-coordinate
+        let textY = 210; // 180 pixels down from the top
+ 
+         // Draw the text
+        ctx.fillText(wager.description, textX, textY);
+
+     
+        ctx.font = `bold ${120}px GT Pressura`;
+
+        ctx.fillText("Big Winners", textX, 340);
+
+        ctx.font = `${60}px GT Pressura`;
+        ctx.textAlign = "left";
+        ctx.textBaseline = "middle";
+
+        // draw users
+        let initialY = 460;
+        const initialX = 453
+        const radius = 80 / 2;
+        for(const topBet of topThreeBets) {
+            // Draw profile picture 
+            // const twitterImg = await loadImage(topBet.profileImage);
+            // ctx.drawImage(twitterImg, initialX, initialY, 80, 80);
+
+            ctx.save();
+
+            // Draw a circle path
+            ctx.beginPath();
+            ctx.arc(initialX + radius, initialY + radius, radius, 0, Math.PI * 2, true);
+
+            // Clip to the current path
+            ctx.clip();
+
+            // Draw the image in the circle
+            const twitterImg = await loadImage(topBet.profileImage);
+            ctx.drawImage(twitterImg, initialX, initialY, 80, 80);
+
+            // Restore the canvas state
+            ctx.restore();
+
+            ctx.fillText(topBet.username, initialX + 100, initialY + 40);
+
+            ctx.save();
+
+            ctx.textAlign = "right";
+            ctx.textBaseline = "middle";
+
+            // Set text color green
+            ctx.fillStyle = "#43A047";
+            ctx.fillText(`+ ${topBet.totalWinAmount} ${wager.token}`, initialX + 700, initialY + 40);
+
+            ctx.restore();
+
+            initialY+=120;
+        }
+
+
+
+        const imgData = canvas.toDataURL().replace(/^data:image\/\w+;base64,/, "");
+        const buf = Buffer.from(imgData, "base64");
+    
+        return buf;
+    } catch (err) {
+         LOGTAIL.error(`Error creating big winners image ${err}`)
+         await delay(ERR_TIMEOUT);
+         return await createBigWinnersImage(wager);
+    }
+}
+
+export const tweetImage = async (tweetType: TweetType, wager: WagerSchema, publicKey: string, betAmount: number, pickedTeam: string, otherTeam: string, user?: WagerUser) => {
     try {
         const roundedBetAmount = Math.floor(betAmount * 100) / 100;
 
         const formattedPublicKey = formatPublicKey(publicKey);
+        const username = user?.twitterData?.username || formattedPublicKey;
         
-        const imgData = await createTwitterImage(wager, formattedPublicKey, roundedBetAmount, pickedTeam, otherTeam, username);
+        let imgData;
+        let tweetText;
+        switch(tweetType) {
+            case TweetType.GAME_PICK:
+                imgData =  await createTwitterImage(wager, formattedPublicKey, roundedBetAmount, pickedTeam, otherTeam, user);
+                tweetText = (user?.twitterData?.username) 
+                    ? `${getRandomPhrase()} @${username}\n\nYou picked ${pickedTeam} to beat ${otherTeam} with ${roundedBetAmount} $${wager.token} on @degenpicksxyz`
+                    : `Wallet ${username} picked ${pickedTeam} to beat ${otherTeam} with ${roundedBetAmount} $${wager.token} on @degenpicksxyz`
+                break;
+            case TweetType.GAME_CREATION:
+                imgData = await createInitateGameTwitterImage(wager);
+                tweetText = (wager.isAdmin) 
+                    ? `The @degenpicksxyz team just made a new $${wager.token} pool.` 
+                    : `LFG ${username} just made a new $${wager.token} pool on @degenpicksxyz`
+                break;
+            case TweetType.GAME_WINNERS:
+                imgData = await createBigWinnersImage(wager);
+                tweetText = `Congrats to the BIG winners from this pool on @degenpicksxyz`;
+                break;
+            default:
+                throw new Error("Invalid tweet type");
+        }
+
+        if(!imgData || !tweetText) {
+            throw new Error("Could not get image data");
+        }
+
+        tweetText += `\n\nhttps://app.degenpicks.xyz/${wager._id}`;
     
         const mediaId = await TWITTER.v1.uploadMedia(imgData, { type: 'image/png' });
     
-        let tweetText;
         const featuredText = getFeaturedText(wager);
-
-        if(username) {
-            tweetText = `${getRandomPhrase()} @${username}\n\nYou picked ${pickedTeam} to beat ${otherTeam} with ${roundedBetAmount} $DUST on degenpicks.xyz ${featuredText}`;
-        } else {
-            tweetText = `Wallet ${formattedPublicKey} picked ${pickedTeam} to beat ${otherTeam} with ${roundedBetAmount} $DUST on degenpicks.xyz ${featuredText}`;
+        if(featuredText) {
+            tweetText += `\n\n${featuredText}`;
         }
         
         await TWITTER.v2.tweet(tweetText, { media: { media_ids: [mediaId ]} });
     } catch (err) {
+        console.log(`Error tweeting ${err}`)
         LOGTAIL.error(`Error tweeting ${err}`)
     }
 

@@ -186,3 +186,9 @@ export type TeamOption = {
   };
   
   export type LeaguesArray = League[];
+
+export enum TweetType {
+    GAME_CREATION,
+    GAME_PICK,
+    GAME_WINNERS
+}

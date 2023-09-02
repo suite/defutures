@@ -264,10 +264,10 @@ export function confirmWalletSigned(nonce: string, signedMessage: string, public
     }
 }
 
-export const isOneMonthAdvance = (startDate: Date, endDate: Date): boolean => {
+export const is14DaysAdvance = (startDate: Date, endDate: Date): boolean => {
     const oneMonthFromStart = new Date(startDate.getTime());
   
-    oneMonthFromStart.setDate(startDate.getDate() + 30);
+    oneMonthFromStart.setDate(startDate.getDate() + 14);
   
     return endDate.getTime() >= oneMonthFromStart.getTime();
 }

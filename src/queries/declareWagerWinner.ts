@@ -1,5 +1,5 @@
 import { ObjectId } from "mongodb";
-import { WagerSchema, WagerUser, WagerWalletSchema } from "../misc/types";
+import { TweetType, WagerSchema, WagerUser, WagerWalletSchema } from "../misc/types";
 import { getKeypair, getBalance, transferToken } from "./solana";
 import WagerWallet from '../model/wagerWallet';
 import Wager from '../model/wager';
@@ -10,6 +10,7 @@ import { getWagerEscrowWallet } from "../misc/utils";
 import { LOGTAIL } from "../config/database";
 import setLosers from "./setLosers";
 import airdrop from "./airdrop";
+import { tweetImage } from "../misc/imageUtils";
 
 export default async function declareWagerWinner(creator: WagerUser, wagerId: ObjectId, selectionId: ObjectId, finalScore?: string): Promise<boolean | ServerError> {
     try {
@@ -64,6 +65,13 @@ export default async function declareWagerWinner(creator: WagerUser, wagerId: Ob
         airdrop(wagerId);
 
         LOGTAIL.info(`Delcared selection ${selectionId} as winner and started airdrops`);
+
+        const refreshedWager: WagerSchema | null = await Wager.findById(wagerId);
+        if(refreshedWager) {
+            tweetImage(TweetType.GAME_WINNERS, refreshedWager, "", 0, "", "");
+        } else {
+            LOGTAIL.error(`Unable to tweet winners for ${wagerId}`);
+        }
 
         return true;
     } catch (err) {

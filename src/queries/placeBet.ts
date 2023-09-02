@@ -1,5 +1,5 @@
 import { ObjectId } from "mongodb";
-import { TokenBalanceResult, WagerSchema, WagerUser } from "../misc/types";
+import { TokenBalanceResult, TweetType, WagerSchema, WagerUser } from "../misc/types";
 import { getTokenBalanceChange } from "./solana";
 import Wager from '../model/wager';
 import User from '../model/user';
@@ -99,7 +99,7 @@ export default async function placeBet(wagerId: ObjectId, selectionId: ObjectId,
         });
 
         // Tweet image
-        tweetImage(wagerData, publicKey, finalBetAmount, selectedSelection.title, otherSelection.title, username);
+        tweetImage(TweetType.GAME_PICK, wagerData, publicKey, finalBetAmount, selectedSelection.title, otherSelection.title, user || undefined);
 
         LOGTAIL.info(`${publicKey} placed a bet of ${finalBetAmount}`)
 

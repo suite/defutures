@@ -1,10 +1,11 @@
 import { AGENDA, LIVE_GAME_CAP, LOGTAIL } from "../config/database";
-import { WagerSchema, WagerUser } from "../misc/types";
+import { TweetType, WagerSchema, WagerUser } from "../misc/types";
 import createWagerEscrows from "./createWagerEscrows";
 import Wager from '../model/wager';
 import { ServerError } from "../misc/serverError";
-import { countAllLiveOrUpcomingGames, countLiveGames, countLiveGamesForUser, isOneMonthAdvance } from "../misc/utils";
+import { countAllLiveOrUpcomingGames, countLiveGames, countLiveGamesForUser, is14DaysAdvance } from "../misc/utils";
 import getAssets from "./getAssets";
+import { tweetImage } from "../misc/imageUtils";
 
 export function getUTCTime(date: Date): number {
     return Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(),
@@ -89,8 +90,8 @@ export default async function createWager(title: string,
         }
 
         // Cannot be more than 1 month in advance
-        if(isOneMonthAdvance(new Date(), new Date(gameDate))) {
-            throw new ServerError("Game cannot be more than 1 month in advance.")
+        if(is14DaysAdvance(new Date(), new Date(gameDate))) {
+            throw new ServerError("Pool cannot be created more than 14 days in advance.")
         }
         
          // Get assets 
@@ -177,6 +178,8 @@ export default async function createWager(title: string,
         });
 
         LOGTAIL.info(`Created wager ${wager._id}`)
+
+        tweetImage(TweetType.GAME_CREATION, wager, "", 0, "", "");
         
         return wager;
     } catch (err) {
