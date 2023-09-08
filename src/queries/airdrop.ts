@@ -29,10 +29,15 @@ export default async function airdrop(wagerId: ObjectId) {
             const airdropAmounts = await getAirdropAmounts(wager);
             if(!airdropAmounts) throw new ServerError('Could not get airdrop amounts.');
 
+            let didAirdropsFail = false;
             for(const { amount, toPubkey, fromKeypair, selectionId } of airdropAmounts) {
                 LOGTAIL.info(`Airdropping ${amount} to ${toPubkey.toString()}.`);
 
                 const { signature, error } = await transferToken(fromKeypair, toPubkey, amount, wager.token);
+
+                if(error !== -1) {
+                    didAirdropsFail = true;
+                }
 
                 LOGTAIL.info(`Result: sig: ${signature} Err: ${error}`);
 
@@ -55,6 +60,8 @@ export default async function airdrop(wagerId: ObjectId) {
             }
 
             LOGTAIL.info(`Completed airdrops for wager ${wagerId}`);
+
+            if(didAirdropsFail) throw new ServerError('Airdrops failed not sending fees.');
 
             if(wager.status === "completed") {
                 LOGTAIL.info(`Starting fees for ${wagerId}`);
