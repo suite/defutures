@@ -241,7 +241,7 @@ export const createTwitterImage = async (wager: WagerSchema, publicKey: string, 
         const ctx = canvas.getContext('2d');
 
         // const text = `{} ${username || publicKey} {} picked {} ${pickedTeam} {} to beat ${otherTeam} with {} ${betAmount} DUST`;
-        const text = `picked {} ${pickedTeam} {} to beat ${otherTeam} with {} ${betAmount} DUST`;
+        const text = `picked {} ${pickedTeam} {} to beat ${otherTeam} with {} ${betAmount} ${wager.token}`;
         const lines = getLines(ctx, text, 100);
 
         const lineHeight = 120;
