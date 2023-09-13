@@ -7,6 +7,8 @@ import Wager from '../model/wager';
 import { getBalance, transferToken } from "./solana";
 import { PublicKey } from "@solana/web3.js";
 
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
+
 export default async function sendFees(wagerId: ObjectId) {
     try {
         const wager: WagerSchema | null = await Wager.findById(wagerId)
@@ -16,6 +18,9 @@ export default async function sendFees(wagerId: ObjectId) {
         if(!(wager.airdropProgress === true && wager.status === "completed")) {
             throw new ServerError("Wager is not ready for sending fees.");
         }
+
+        // 10 Second delay to ensure all airdrops are completed
+        await delay(10000);
 
         const winningSelection = wager.selections.filter((selection) => selection.winner === true)[0];
 
