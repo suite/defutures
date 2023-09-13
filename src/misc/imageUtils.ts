@@ -681,7 +681,7 @@ export const tweetImage = async (tweetType: TweetType, wager: WagerSchema, publi
                 imgData = await createInitateGameTwitterImage(wager);
                 tweetText = (wager.isAdmin) 
                     ? `The @degenpicksxyz team just made a new $${wager.token} pool.` 
-                    : `LFG ${username} just made a new $${wager.token} pool on @degenpicksxyz`
+                    : `LFG @${username} just made a new $${wager.token} pool on @degenpicksxyz`
                 break;
             case TweetType.GAME_WINNERS:
                 imgData = await createBigWinnersImage(wager);
