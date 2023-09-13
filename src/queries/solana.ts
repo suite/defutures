@@ -27,7 +27,7 @@ async function transferSOL(fromKeypair: web3.Keypair, toPubkey: web3.PublicKey, 
     
         tx.feePayer = FUND_KEYPAIR.publicKey;
 
-        signature = await web3.sendAndConfirmTransaction(CONNECTION, tx, [FUND_KEYPAIR, fromKeypair]);
+        signature = await web3.sendAndConfirmTransaction(CONNECTION, tx, [FUND_KEYPAIR, fromKeypair], { commitment: 'confirmed' });
 
         LOGTAIL.info(`Transferred ${amount} SOL to ${toPubkey.toString()}`);
           
