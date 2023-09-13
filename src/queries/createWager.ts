@@ -179,7 +179,7 @@ export default async function createWager(title: string,
 
         LOGTAIL.info(`Created wager ${wager._id}`)
 
-        tweetImage(TweetType.GAME_CREATION, wager, "", 0, "", "");
+        tweetImage(TweetType.GAME_CREATION, wager, "", 0, "", "", creator);
         
         return wager;
     } catch (err) {
