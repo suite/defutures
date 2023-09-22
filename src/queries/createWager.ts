@@ -73,8 +73,8 @@ export default async function createWager(title: string,
                 throw new ServerError("Error checking if user has live game.")
             }
 
-            if(hasGameLive > 0) {
-                throw new ServerError("User already has a live game.")
+            if(hasGameLive > 1) {
+                throw new ServerError("User already has 2 live games.")
             }
 
             // Check if live game exists with teams and tokens

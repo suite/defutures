@@ -77,7 +77,7 @@ export const KEY = process.env.KEY as string;
 
 export const RAPID_API = process.env.RAPID_API as string;
 
-export const LIVE_GAME_CAP = 10;
+export const LIVE_GAME_CAP = 20;
 
 import findMissingEscrowTransactions from "../queries/findMissingEscrowTransactions";
 // Change token type based  off cluster/clusterurl
