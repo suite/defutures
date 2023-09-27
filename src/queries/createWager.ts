@@ -34,7 +34,7 @@ export default async function createWager(title: string,
     selection1Record: string,
     selection2: string, 
     selection2Record: string,
-    gameDate: number, creator: WagerUser, token: string): Promise<WagerSchema | ServerError> {
+    gameDate: number, creator: WagerUser, token: string, info: string): Promise<WagerSchema | ServerError> {
 
     try {   
         if(!["SOL", "DUST", "USDC"].includes(token)) throw new ServerError("Invalid token.");
@@ -151,7 +151,8 @@ export default async function createWager(title: string,
             metadata,
             creator,
             token,
-            isAdmin
+            isAdmin,
+            info: info || ""
         }
 
         const wager: WagerSchema = await Wager.create(wagerOptions)

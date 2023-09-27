@@ -63,6 +63,17 @@ const wagerSchema = new mongoose.Schema({
     creator: { type: userSchema }, 
     token: { type: String },
     isAdmin: { type: Boolean, default: false },
+    info: {
+        type: String,
+        default: '',
+        validate: {
+          validator: function (v: string) {
+            // This function checks if the length of 'v' is less than or equal to 250
+            return v.length <= 250;
+          },
+          message: 'Info must not exceed 250 characters',
+        },
+    },
     /*
     ex: 
     metadata: [

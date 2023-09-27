@@ -65,7 +65,8 @@ export type WagerSchema = {
     metadata: Array<any>,
     creator: WagerUser,
     token: Token,
-    isAdmin: boolean
+    isAdmin: boolean,
+    info: string
 }
 
 export type TokenBalanceResult = {

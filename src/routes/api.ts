@@ -136,30 +136,54 @@ router.post('/confirmWallet', async (req, res) => {
 
 router.get('/wagers', async (req, res) => {
     try {
-        const wagers: Array<WagerSchema> = await Wager.find({}, { 
-            title: 1,
-            description: 1,
-            finalScore: 1,
-            status: 1,
-            league: 1,
-            selections: 1,
-            startDate: 1,
-            endDate: 1,
-            gameDate: 1,
-            _id: 1,
-            metadata: 1,
-            creator: 1,
-            token: 1
-         })
+        const wagers: Array<WagerSchema> = await Wager.aggregate([
+            {
+                $match: {
+                    'metadata.is_hidden': false // Filter out hidden games
+                }
+            },
+            {
+                $project: {
+                    title: 1,
+                    description: 1,
+                    finalScore: 1,
+                    status: 1,
+                    league: 1,
+                    selections: {
+                        $map: {
+                            input: '$selections',
+                            as: 'sel',
+                            in: {
+                                $cond: {
+                                    if: { $eq: ['$status', 'live'] }, // Check if status is 'live'
+                                    then: '$$sel', // If 'live', keep the publicKey
+                                    else: { // If not 'live', hide the publicKey
+                                        $mergeObjects: [
+                                            '$$sel',
+                                            { publicKey: '' }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    startDate: 1,
+                    endDate: 1,
+                    gameDate: 1,
+                    _id: 1,
+                    metadata: 1,
+                    creator: 1,
+                    token: 1,
+                    info: 1
+                }
+            }
+        ]);
 
-        wagers.filter(wager => wager.status !== 'live')
-                                    .map(wager => wager.selections.map(sel => sel.publicKey = ''))
-        
-        res.status(200).json(wagers)
+        res.status(200).json(wagers);
     } catch (err) {
         return res.sendStatus(500);
     }   
-})
+});
 
 router.get('/picks', async (req, res) => {
     try {
@@ -326,7 +350,7 @@ router.post('/createWager', creatorMiddleware, async (req, res) => {
         selection1Record, 
         selection2, 
         selection2Record,
-        gameDate, token } = req.body;
+        gameDate, token, info } = req.body;
 
     if (!(title && description && selection1 && selection2 && 
          gameDate && token && collectionName))
@@ -345,7 +369,7 @@ router.post('/createWager', creatorMiddleware, async (req, res) => {
         selection2Record,  
         gameDate,
         creatorUser,
-        token);
+        token, info);
 
     if(result instanceof ServerError) {
         return res.status(400).json({ message: result.message, data: result }) 
