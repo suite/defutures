@@ -2,7 +2,7 @@ import { Keypair, PublicKey } from "@solana/web3.js"
 import { ObjectId } from "mongodb"
 import { USE_DEV } from "../config/database";
 
-export type SplToken = 'DUST' | "USDC";
+export type SplToken = 'DUST' | "USDC" | "CROWN";
 export type Token = 'SOL' | SplToken;
 
 export type TokenDetails = {

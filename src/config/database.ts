@@ -40,6 +40,10 @@ export const TOKEN_MAP: Record<SplToken, TokenDetails> = USE_DEV ? {
   USDC: {
       publicKey: new PublicKey("94Ab85gYry4raFhHsLbVJK7W7iR4cS8jyeFr7oZQcgAA"),
       decimals: 6
+  },
+  CROWN: {
+    publicKey: new PublicKey(""),
+    decimals: -1
   }
 } : {
   DUST: {
@@ -49,6 +53,10 @@ export const TOKEN_MAP: Record<SplToken, TokenDetails> = USE_DEV ? {
   USDC: {
       publicKey: new PublicKey("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"),
       decimals: 6
+  },
+  CROWN: {
+      publicKey: new PublicKey("GDfnEsia2WLAW5t8yx2X5j2mkfA74i5kwGdDuZHt7XmG"),
+      decimals: 9
   }
 };
 

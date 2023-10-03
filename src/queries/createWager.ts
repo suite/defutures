@@ -1,4 +1,4 @@
-import { AGENDA, LIVE_GAME_CAP, LOGTAIL } from "../config/database";
+import { AGENDA, LIVE_GAME_CAP, LOGTAIL, TOKEN_MAP } from "../config/database";
 import { TweetType, WagerSchema, WagerUser } from "../misc/types";
 import createWagerEscrows from "./createWagerEscrows";
 import Wager from '../model/wager';
@@ -37,7 +37,7 @@ export default async function createWager(title: string,
     gameDate: number, creator: WagerUser, token: string, info: string): Promise<WagerSchema | ServerError> {
 
     try {   
-        if(!["SOL", "DUST", "USDC"].includes(token)) throw new ServerError("Invalid token.");
+        if(![...Object.keys(TOKEN_MAP), "SOL"].includes(token)) throw new ServerError("Invalid token.");
 
         // Check game cap
         const liveGameCount = await countAllLiveOrUpcomingGames();
@@ -73,8 +73,8 @@ export default async function createWager(title: string,
                 throw new ServerError("Error checking if user has live game.")
             }
 
-            if(hasGameLive > 1) {
-                throw new ServerError("User already has 2 live games.")
+            if(hasGameLive > 2) {
+                throw new ServerError("User already has 3 live games.")
             }
 
             // Check if live game exists with teams and tokens
