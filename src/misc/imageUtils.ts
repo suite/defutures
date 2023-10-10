@@ -149,11 +149,18 @@ const getImageFromIds = async (ids: Array<number>, isDe: boolean): Promise<Image
 }
 
 
-const getNFTImage = async (wager: WagerSchema): Promise<Image | null> => {
+const getNFTImage = async (wager: WagerSchema, selection: -1 | 0 | 1 = -1): Promise<Image | null> => {
     try {
         // TODO: Implement these
         // const hasY00tTraits = wager.metadata.find((meta: any) => meta.y00t && meta.y00t.traits);
         // const hasDeTraits = wager.metadata.find((meta: any) => meta.de && meta.de.traits);
+
+        if(selection !== -1) {
+            const selectionObj = wager.selections[selection];
+            if(selectionObj.nftImageUrl) {
+                return await getImageWithRetry(selectionObj.nftImageUrl);
+            }
+        }
     
         // check if metadata exists
         if(!wager.metadata) {
@@ -403,7 +410,7 @@ export const createInitateGameTwitterImage = async (wager: WagerSchema): Promise
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
        // Fetch and draw the first NFT image
-        const nftImage = await getNFTImage(wager);
+        const nftImage = await getNFTImage(wager, 0);
         if(!nftImage) {
             throw new Error("Could not get y00t image");
         }
@@ -412,7 +419,7 @@ export const createInitateGameTwitterImage = async (wager: WagerSchema): Promise
         ctx.drawImage(nftImage, -450, -1, 900, 900);
 
         // Fetch and draw the second NFT image
-        const nftImage1 = await getNFTImage(wager);
+        const nftImage1 = await getNFTImage(wager, 1);
         if(!nftImage1) {
             throw new Error("Could not get y00t image");
         }
@@ -546,7 +553,7 @@ export const createBigWinnersImage = async (wager: WagerSchema): Promise<Buffer 
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
        // Fetch and draw the first NFT image
-        const nftImage = await getNFTImage(wager);
+        const nftImage = await getNFTImage(wager, 0);
         if(!nftImage) {
             throw new Error("Could not get y00t image");
         }
@@ -555,7 +562,7 @@ export const createBigWinnersImage = async (wager: WagerSchema): Promise<Buffer 
         ctx.drawImage(nftImage, -450, -1, 900, 900);
 
         // Fetch and draw the second NFT image
-        const nftImage1 = await getNFTImage(wager);
+        const nftImage1 = await getNFTImage(wager, 1);
         if(!nftImage1) {
             throw new Error("Could not get y00t image");
         }
@@ -695,7 +702,8 @@ export const tweetImage = async (tweetType: TweetType, wager: WagerSchema, publi
             throw new Error("Could not get image data");
         }
 
-        tweetText += `\n\nhttps://app.degenpicks.xyz/${wager._id}`;
+        // Bad for algo!
+        // tweetText += `\n\nhttps://app.degenpicks.xyz/${wager._id}`;
     
         const mediaId = await TWITTER.v1.uploadMedia(imgData, { type: 'image/png' });
     
