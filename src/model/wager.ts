@@ -69,9 +69,9 @@ const wagerSchema = new mongoose.Schema({
         validate: {
           validator: function (v: string) {
             // This function checks if the length of 'v' is less than or equal to 250
-            return v.length <= 250;
+            return v.length <= 300;
           },
-          message: 'Info must not exceed 250 characters',
+          message: 'Info must not exceed 300 characters',
         },
     },
     /*
