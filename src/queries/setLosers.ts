@@ -2,6 +2,7 @@ import { ObjectId } from "mongodb"
 import { LOGTAIL } from "../config/database";
 import { ServerError } from "../misc/serverError"
 import Wager from '../model/wager';
+import { updateWinStreak } from "../misc/userUtils";
 
 export default async function setLosers(losingSelection: ObjectId) {
     try {
@@ -37,6 +38,9 @@ export default async function setLosers(losingSelection: ObjectId) {
             }
 
             await Wager.updateOne(placedBetsFilter, { 'placedBets.$.winAmount': -1 });
+
+            // Update user stats
+            await updateWinStreak(placedBet.publicKey, 'subtract');
         }
     } catch (err) {
         LOGTAIL.error(`Error setting winners ${err}`)

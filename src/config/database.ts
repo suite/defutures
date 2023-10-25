@@ -42,7 +42,7 @@ export const TOKEN_MAP: Record<SplToken, TokenDetails> = USE_DEV ? {
       decimals: 6
   },
   CROWN: {
-    publicKey: new PublicKey(""),
+    publicKey: new PublicKey("94Ab85gYry4raFhHsLbVJK7W7iR4cS8jyeFr7oZQcgAA"),
     decimals: -1
   }
 } : {
@@ -88,6 +88,7 @@ export const RAPID_API = process.env.RAPID_API as string;
 export const LIVE_GAME_CAP = 20;
 
 import findMissingEscrowTransactions from "../queries/findMissingEscrowTransactions";
+import { dailyPointUpdate } from "../queries/leaderboardNew";
 // Change token type based  off cluster/clusterurl
 // Dust mint: DUSTawucrTsGU8hcqRdHDCbuYhCPADMLM2VcCb8VnFnQ
 // export const TOKEN_MINT = new PublicKey(process.env.TOKEN_MINT as string)
@@ -110,6 +111,9 @@ export const connectMongo = async () => {
 
      // Update stats
      await AGENDA.every("5 minutes", "update stats");
+
+     // Update leaderboard
+     await AGENDA.every("24 hours", "update leaderboard");
   } catch (err) {
     console.log("database connection failed. exiting now...");
     console.error(err);
@@ -271,3 +275,8 @@ AGENDA.define("update stats", async (job: Job) => {
     await updateStats();
 })
 
+AGENDA.define("update leaderboard", async (job: Job) => {
+  LOGTAIL.info("Updating leaderboard");
+
+  await dailyPointUpdate();
+})

@@ -11,6 +11,7 @@ import { LOGTAIL } from "../config/database";
 import setLosers from "./setLosers";
 import airdrop from "./airdrop";
 import { tweetImage } from "../misc/imageUtils";
+import { addToTotalGamesAirDropped, addToTotalPoints } from "../misc/userUtils";
 
 export default async function declareWagerWinner(creator: WagerUser, wagerId: ObjectId, selectionId: ObjectId, finalScore?: string): Promise<boolean | ServerError> {
     try {
@@ -65,6 +66,12 @@ export default async function declareWagerWinner(creator: WagerUser, wagerId: Ob
         airdrop(wagerId);
 
         LOGTAIL.info(`Delcared selection ${selectionId} as winner and started airdrops`);
+
+
+        // Update user stats
+        await addToTotalPoints(creator.publicKey);
+        await addToTotalGamesAirDropped(creator.publicKey);
+
 
         const refreshedWager: WagerSchema | null = await Wager.findById(wagerId);
         if(refreshedWager) {

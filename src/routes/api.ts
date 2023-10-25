@@ -21,6 +21,7 @@ import User from "../model/user";
 import { creatorMiddleware, getStatus } from "../queries/getStatus";
 import createWager from "../queries/createWager";
 import declareWagerWinner from "../queries/declareWagerWinner";
+import { getLeaderboard } from "../queries/leaderboardNew";
 
 const router = express.Router();
 
@@ -287,12 +288,24 @@ router.post('/getUserPick', async (req, res) => {
     res.status(200).json({ message: "Fetched user pick", data: result })
 })
 
-router.get('/leaderboard', async (req, res) => {
+
+// DEPRECATED
+router.get('/leaderboard_pickem', async (req, res) => {
     const { pickId } = req.query;
 
     const pickObjectId = (pickId) ? getObjectId(pickId as string) : null;
 
     const result = await getPickemLeaderboard(pickObjectId);
+
+    if(result instanceof ServerError) {
+        return res.status(400).json({ message: result.message, data: result }) 
+    }
+
+    res.status(200).json({ message: "Fetched leaderboard", data: result })
+})
+
+router.get('/leaderboard', async (req, res) => {
+    const result = await getLeaderboard();
 
     if(result instanceof ServerError) {
         return res.status(400).json({ message: result.message, data: result }) 

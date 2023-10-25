@@ -6,6 +6,7 @@ import User from '../model/user';
 import { ServerError } from "../misc/serverError";
 import { FEE_MULTIPLIER, LOGTAIL } from "../config/database";
 import { tweetImage } from "../misc/imageUtils";
+import { addToTotalGamesPlayed, addToTotalPoints, getOrCreateUser } from "../misc/userUtils";
 
 export default async function placeBet(wagerId: ObjectId, selectionId: ObjectId, signature: string): Promise<TokenBalanceResult | ServerError> {
     try {
@@ -45,7 +46,7 @@ export default async function placeBet(wagerId: ObjectId, selectionId: ObjectId,
 
         const publicKey = amountBet.userPublicKey;
 
-        const user: WagerUser | null = await User.findOne({ publicKey });
+        const user: WagerUser | null = await getOrCreateUser(publicKey);
 
         const username = user?.twitterData?.username || undefined;
 
@@ -97,6 +98,10 @@ export default async function placeBet(wagerId: ObjectId, selectionId: ObjectId,
         await Wager.updateOne({ _id: wagerId, 'selections._id': selectionId }, { 
             $inc: { 'selections.$.totalSpent': finalBetAmount }
         });
+
+        // Update user stats
+        await addToTotalGamesPlayed(publicKey);
+        await addToTotalPoints(publicKey);
 
         // Tweet image
         tweetImage(TweetType.GAME_PICK, wagerData, publicKey, finalBetAmount, selectedSelection.title, otherSelection.title, user || undefined);

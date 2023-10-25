@@ -6,6 +6,7 @@ import { ServerError } from "../misc/serverError";
 import { countAllLiveOrUpcomingGames, countLiveGames, countLiveGamesForUser, is14DaysAdvance } from "../misc/utils";
 import getAssets from "./getAssets";
 import { tweetImage } from "../misc/imageUtils";
+import { addToTotalGamesCreated } from "../misc/userUtils";
 
 export function getUTCTime(date: Date): number {
     return Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(),
@@ -177,6 +178,9 @@ export default async function createWager(title: string,
             status: 'closed',
             wager
         });
+
+        // Update user stats
+        await addToTotalGamesCreated(creator.publicKey);
 
         LOGTAIL.info(`Created wager ${wager._id}`)
 

@@ -164,6 +164,15 @@ export type TwitterData = {
     profileImage: string;
 }
 
+export type Stats = {
+    totalWins: number;
+    totalGamesCreated: number;
+    totalGamesPlayed: number;
+    totalPoints: number;
+    winStreak: number;
+    longestWinStreak: number;
+}
+
 type Roles = Role[];
 type Role = 'ADMIN' | 'CREATOR' | 'DEFAULT';
 
@@ -171,6 +180,7 @@ export type WagerUser = {
     publicKey: string;
     twitterData: TwitterData | null;
     roles: Roles;
+    stats: Stats;
 }
 
 export type TeamOption = {

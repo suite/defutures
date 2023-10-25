@@ -3,6 +3,7 @@ import { WagerBetSchema, WagerSchema } from "../misc/types";
 import Wager from '../model/wager';
 import { ServerError } from "../misc/serverError";
 import { FEE_MULTIPLIER, LOGTAIL, PAYOUT_PRECISION } from "../config/database";
+import { addToTotalPoints, addToTotalWins, updateWinStreak } from "../misc/userUtils";
 
 export default async function setWinners(winningSelection: ObjectId) {
     try {
@@ -63,6 +64,11 @@ export default async function setWinners(winningSelection: ObjectId) {
             }
 
             await Wager.updateOne(placedBetsFilter, { 'placedBets.$.winAmount': payout });
+
+            // Update user stats
+            await addToTotalWins(placedBet.publicKey);
+            await addToTotalPoints(placedBet.publicKey);
+            await updateWinStreak(placedBet.publicKey, 'add');
         }
 
         LOGTAIL.info(`Set ${winningSelection} as winning selection.`)
