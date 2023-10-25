@@ -66,9 +66,12 @@ export default async function setWinners(winningSelection: ObjectId) {
             await Wager.updateOne(placedBetsFilter, { 'placedBets.$.winAmount': payout });
 
             // Update user stats
-            await addToTotalWins(placedBet.publicKey);
-            await addToTotalPoints(placedBet.publicKey);
-            await updateWinStreak(placedBet.publicKey, 'add');
+            await Promise.all([
+                addToTotalWins(placedBet.publicKey),
+                addToTotalPoints(placedBet.publicKey),
+                updateWinStreak(placedBet.publicKey, 'add')
+            ]);
+           
         }
 
         LOGTAIL.info(`Set ${winningSelection} as winning selection.`)

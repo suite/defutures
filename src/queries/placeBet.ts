@@ -100,8 +100,10 @@ export default async function placeBet(wagerId: ObjectId, selectionId: ObjectId,
         });
 
         // Update user stats
-        await addToTotalGamesPlayed(publicKey);
-        await addToTotalPoints(publicKey);
+        await Promise.all([
+            addToTotalGamesPlayed(publicKey),
+            addToTotalPoints(publicKey)
+        ]);
 
         // Tweet image
         tweetImage(TweetType.GAME_PICK, wagerData, publicKey, finalBetAmount, selectedSelection.title, otherSelection.title, user || undefined);
