@@ -205,13 +205,20 @@ export async function updateStats(): Promise<boolean> {
         const wagers: Array<WagerSchema> = await Wager.find({});
         const picks: Array<PickSchema> = await Pick.find({});
 
-        let totalVol = 0;
         let totalGames = wagers.length + picks.length;
+        let totalPicks = 0;
         let users = new Set();
 
+        const volumes: any = {};
+
         wagers.forEach(wager => {
-            totalVol += wager.selections[0].totalSpent;
-            totalVol += wager.selections[1].totalSpent;
+            const token = wager.token;
+            if(!volumes[token]) volumes[token] = 0;
+
+            volumes[token] += wager.selections[0].totalSpent;
+            volumes[token] += wager.selections[1].totalSpent;
+
+            totalPicks += wager.placedBets.length;
 
             wager.placedBets.forEach(placedBet => {
                 users.add(placedBet.publicKey);
@@ -219,7 +226,9 @@ export async function updateStats(): Promise<boolean> {
         });
 
         picks.forEach(pick => {
-            totalVol += pick.totalSpent;
+            volumes['DUST'] += pick.totalSpent;
+
+            totalPicks += pick.placedBets.length;
 
             pick.placedBets.forEach(placedBet => {
                 users.add(placedBet.publicKey);
@@ -228,17 +237,24 @@ export async function updateStats(): Promise<boolean> {
 
         const stats = await Stats.findOne({});
 
+        const volArr = Object.entries(volumes).map(([token_name, amount]) => ({
+            token: token_name,
+            amount: amount
+        }));
+
         if(stats === null) {
             await Stats.create({
                 gamesHosted: totalGames,
                 uniquePlayers: users.size,
-                totalVolume: totalVol
+                totalPicks: totalPicks,
+                totalVolume: volArr
             });
         } else {
             await Stats.updateOne({}, {
                 gamesHosted: totalGames,
                 uniquePlayers: users.size,
-                totalVolume: totalVol
+                totalPicks: totalPicks,
+                totalVolume: volArr
             });
         }
 
