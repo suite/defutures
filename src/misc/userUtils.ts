@@ -56,3 +56,23 @@ export const updateWinStreak = async (publicKey: string, action: 'add' | 'subtra
 
     await user.save();
 }
+
+export const updateHottestPool = async (publicKey: string, numPlayers: number) => {
+    const user = await User.findOne({ publicKey });
+    if (!user || !user.stats) return;
+
+    if (numPlayers > user.stats.hottestPool) {
+        user.stats.hottestPool = numPlayers;
+        await user.save();
+    }
+}
+
+export const updateCraziestUpset = async (publicKey: string, multiplier: number) => {
+    const user = await User.findOne({ publicKey });
+    if (!user || !user.stats) return;
+
+    if (multiplier > user.stats.craziestUpset) {
+        user.stats.craziestUpset = multiplier;
+        await user.save();
+    }
+}

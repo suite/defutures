@@ -171,6 +171,8 @@ export type Stats = {
     totalPoints: number;
     winStreak: number;
     longestWinStreak: number;
+    hottestPool: number;
+    craziestUpset: number;
 }
 
 type Roles = Role[];

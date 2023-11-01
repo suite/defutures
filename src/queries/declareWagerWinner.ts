@@ -11,7 +11,7 @@ import { LOGTAIL } from "../config/database";
 import setLosers from "./setLosers";
 import airdrop from "./airdrop";
 import { tweetImage } from "../misc/imageUtils";
-import { addToTotalGamesAirDropped, addToTotalGamesCreated, addToTotalPoints } from "../misc/userUtils";
+import { addToTotalGamesAirDropped, addToTotalGamesCreated, addToTotalPoints, updateCraziestUpset, updateHottestPool } from "../misc/userUtils";
 
 export default async function declareWagerWinner(creator: WagerUser, wagerId: ObjectId, selectionId: ObjectId, finalScore?: string): Promise<boolean | ServerError> {
     try {
@@ -68,13 +68,28 @@ export default async function declareWagerWinner(creator: WagerUser, wagerId: Ob
         LOGTAIL.info(`Delcared selection ${selectionId} as winner and started airdrops`);
 
 
+        // *******  Update user stats  *******
+        const totalBets = wager.placedBets.reduce((acc, bet) => acc + bet.amounts.length, 0);
+
+        const wagerBetAmounts = wager.selections.map((selection) => selection.totalSpent);
+        const totalWagerVolume = wagerBetAmounts.reduce((a, b) => a + b, 0);
+
+        // Get winning selection volume
+        const winningSelectionVolume = winningSelection.totalSpent;
+
+        // Calculate payout odds
+        let payoutMultiplier = totalWagerVolume / winningSelectionVolume;
+        payoutMultiplier = Math.round(payoutMultiplier * 100) / 100;
+
         // Update user stats
         await Promise.all([
             addToTotalPoints(creator.publicKey),
             addToTotalGamesAirDropped(creator.publicKey),
-            addToTotalGamesCreated(creator.publicKey)
+            addToTotalGamesCreated(creator.publicKey),
+            updateHottestPool(creator.publicKey, totalBets),
+            updateCraziestUpset(creator.publicKey, payoutMultiplier)
         ]);
-
+        // *******  Update user stats  *******
 
         const refreshedWager: WagerSchema | null = await Wager.findById(wagerId);
         if(refreshedWager) {
