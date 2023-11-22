@@ -200,62 +200,80 @@ export async function getUpdateSelection(pickId: ObjectId): Promise<PickSelectio
     }
 }
 
+const getStats = async (live=false) => {
+    let wagerQuery = {};
+    let pickQuery = {};
+
+    if (live) {
+        wagerQuery = { 'status': { $nin: ['cancelled', 'completed'] } };
+        pickQuery = { 'status': { $nin: ['cancelled', 'completed'] } };
+    }
+
+    const wagers: Array<WagerSchema> = await Wager.find(wagerQuery);
+    const picks: Array<PickSchema> = await Pick.find(pickQuery);
+
+    let totalGames = wagers.length + picks.length;
+    let totalPicks = 0;
+    let users = new Set();
+
+    const volumes: any = {};
+
+    wagers.forEach(wager => {
+        const token = wager.token || 'DUST';
+        if(!volumes[token]) volumes[token] = 0;
+
+        volumes[token] += wager.selections[0].totalSpent;
+        volumes[token] += wager.selections[1].totalSpent;
+
+        totalPicks += wager.placedBets.length;
+
+        wager.placedBets.forEach(placedBet => {
+            users.add(placedBet.publicKey);
+        })
+    });
+
+    picks.forEach(pick => {
+        volumes['DUST'] += pick.totalSpent;
+
+        totalPicks += pick.placedBets.length;
+
+        pick.placedBets.forEach(placedBet => {
+            users.add(placedBet.publicKey);
+        });
+    });
+
+    const volArr = Object.entries(volumes).map(([token_name, amount]) => ({
+        token: token_name,
+        amount: amount
+    }));
+
+    return {
+        gamesHosted: totalGames,
+        uniquePlayers: users.size,
+        totalPicks: totalPicks,
+        totalVolume: volArr
+    }
+}
+
 export async function updateStats(): Promise<boolean> {
     try {
-        const wagers: Array<WagerSchema> = await Wager.find({});
-        const picks: Array<PickSchema> = await Pick.find({});
+         // Fetch live and total stats concurrently
+        const [allTime, live] = await Promise.all([getStats(false), getStats(true)]);
 
-        let totalGames = wagers.length + picks.length;
-        let totalPicks = 0;
-        let users = new Set();
+        // Check if a stats record already exists
+        const existingStats = await Stats.findOne();
 
-        const volumes: any = {};
+        const updateData = {
+            live: live,
+            total: allTime,
+        };
 
-        wagers.forEach(wager => {
-            const token = wager.token;
-            if(!volumes[token]) volumes[token] = 0;
-
-            volumes[token] += wager.selections[0].totalSpent;
-            volumes[token] += wager.selections[1].totalSpent;
-
-            totalPicks += wager.placedBets.length;
-
-            wager.placedBets.forEach(placedBet => {
-                users.add(placedBet.publicKey);
-            })
-        });
-
-        picks.forEach(pick => {
-            volumes['DUST'] += pick.totalSpent;
-
-            totalPicks += pick.placedBets.length;
-
-            pick.placedBets.forEach(placedBet => {
-                users.add(placedBet.publicKey);
-            });
-        });
-
-        const stats = await Stats.findOne({});
-
-        const volArr = Object.entries(volumes).map(([token_name, amount]) => ({
-            token: token_name,
-            amount: amount
-        }));
-
-        if(stats === null) {
-            await Stats.create({
-                gamesHosted: totalGames,
-                uniquePlayers: users.size,
-                totalPicks: totalPicks,
-                totalVolume: volArr
-            });
+        if (!existingStats) {
+            // If no stats record exists, create a new one
+            await Stats.create(updateData);
         } else {
-            await Stats.updateOne({}, {
-                gamesHosted: totalGames,
-                uniquePlayers: users.size,
-                totalPicks: totalPicks,
-                totalVolume: volArr
-            });
+            // If a record exists, update it
+            await Stats.updateOne({}, updateData);
         }
 
         return true;

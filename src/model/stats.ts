@@ -5,11 +5,16 @@ const volume = new mongoose.Schema({
     amount: { type: Number },
 });
 
-const statsSchema = new mongoose.Schema({
+const stats = new mongoose.Schema({
     gamesHosted: { type: Number },
     uniquePlayers: { type: Number },
     totalPicks: { type: Number },
     totalVolume: { type: [volume], default: [] },
+});
+
+const statsSchema = new mongoose.Schema({
+    live: { type: stats, default: {} },
+    total: { type: stats, default: {} },
 });
 
 export default mongoose.model("stats", statsSchema);
