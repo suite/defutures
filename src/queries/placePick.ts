@@ -22,25 +22,31 @@ export default async function placePick(pickId: ObjectId, pickedTeams: Array<Obj
             throw new ServerError("Transaction signature already used");
         }
 
-        // Confirm correct number of pickedTeams
-        if(pickedTeams.length !== pickData.selections.length) {
-            throw new ServerError("Incorrect number of teams");
-        }
 
-        // Confirm no duplicate selections
-        const pickedSelections = [];
-        const pickedTeamsStringified = pickedTeams.map(team => JSON.stringify(team));
-        for(const selection of pickData.selections) {
-            for(const team of selection.teams) {
-                if(pickedTeamsStringified.includes(JSON.stringify(team._id))) {
-                    pickedSelections.push(selection._id);
-                }
-            }
-        }
+        // TODO: VALIDATE PICKED TEAMS!!!!!
+        
+        // const hasTiebreaker = pickData.selections.find(selection => selection.isTiebreaker);
+        // const checkLength = hasTiebreaker ? pickData.selections.length - 1 : pickData.selections.length; 
 
-        const validPickedTeams = validatePickedTeams(pickData, pickedSelections);
+        // // Confirm correct number of pickedTeams
+        // if(pickedTeams.length !== checkLength) {
+        //     throw new ServerError("Incorrect number of teams");
+        // }
 
-        if(!validPickedTeams) throw new ServerError("Invalid team selection.")
+        // // Confirm no duplicate selections
+        // const pickedSelections = [];
+        // const pickedTeamsStringified = pickedTeams.map(team => JSON.stringify(team));
+        // for(const selection of pickData.selections) {
+        //     for(const team of selection.teams) {
+        //         if(pickedTeamsStringified.includes(JSON.stringify(team._id))) {
+        //             pickedSelections.push(selection._id);
+        //         }
+        //     }
+        // }
+
+        // const validPickedTeams = validatePickedTeams(pickData, pickedSelections);
+
+        // if(!validPickedTeams) throw new ServerError("Invalid team selection.")
 
         // Confirm signature (confirms balance diff, publickey)
         const amountBet = await getTokenBalanceChange(signature, pickPubkey, "DUST");

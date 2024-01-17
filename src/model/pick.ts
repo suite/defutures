@@ -44,7 +44,9 @@ const pickSelection = new mongoose.Schema({
     gameDate: { type: Number },
     totalScore: { type: Number },
     isTiebreaker: { type: Boolean },
-    matchId: { type: Number, default: -1}
+    matchId: { type: Number, default: -1},
+    title: { type: String },
+    name: { type: String },
 });
 
 const pickSchema = new mongoose.Schema({

@@ -131,7 +131,9 @@ export type PickSelectionSchema = {
     gameDate: number,
     totalScore: number,
     isTiebreaker: boolean,
-    matchId?: number
+    matchId?: number,
+    title: string,
+    name: string;
 }
 
 export type PickSchema = {
