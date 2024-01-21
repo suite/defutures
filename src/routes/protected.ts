@@ -13,6 +13,7 @@ import createWager from "../queries/createWager";
 import declarePickWinners from "../queries/declarePickWinners";
 import declareWagerWinner from "../queries/declareWagerWinner";
 import sendFees from "../queries/sendFees";
+import updatePick from "../queries/updatePick";
 
 const router = express.Router();
 
@@ -57,6 +58,27 @@ router.post('/declarePickWinners', async (req, res) => {
 
     res.status(200).json({ message: "Declared winner", data: result })
 })
+
+
+router.post('/updatePick', async (req, res) => { 
+    const { pickId, winningSelectionIds, tiebreaker } = req.body;
+
+    const pickObjectId = getObjectId(pickId);
+
+    if(!(pickObjectId && winningSelectionIds)) {
+        res.status(400).send({ message: "Invalid input", data: {} });
+        return;
+    }
+
+    const result = await updatePick(pickObjectId, winningSelectionIds, tiebreaker);
+
+    if(result instanceof ServerError) {
+        return res.status(400).json({ message: result.message, data: result }) 
+    }
+
+    res.status(200).json({ message: "Declared winner", data: result })
+})
+
 
 router.post('/sendFees', async (req, res) => { 
     const { wagerId } = req.body;

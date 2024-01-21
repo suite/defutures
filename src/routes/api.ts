@@ -22,6 +22,7 @@ import { creatorMiddleware, getStatus } from "../queries/getStatus";
 import createWager from "../queries/createWager";
 import declareWagerWinner from "../queries/declareWagerWinner";
 import { getLeaderboard } from "../queries/leaderboardNew";
+import { getPickLeaderboard } from "../queries/getPickLeaderboard";
 
 const router = express.Router();
 
@@ -295,7 +296,13 @@ router.get('/leaderboard_pickem', async (req, res) => {
 
     const pickObjectId = (pickId) ? getObjectId(pickId as string) : null;
 
-    const result = await getPickemLeaderboard(pickObjectId);
+    if(!pickObjectId) {
+        res.status(400).send({ message: "Invalid input", data: {} });
+        return;
+    }
+
+    // const result = await getPickemLeaderboard(pickObjectId);
+    const result = await getPickLeaderboard(pickObjectId);
 
     if(result instanceof ServerError) {
         return res.status(400).json({ message: result.message, data: result }) 

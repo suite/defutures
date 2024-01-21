@@ -23,8 +23,27 @@ export default async function placePick(pickId: ObjectId, pickedTeams: Array<Obj
         }
 
 
-        // TODO: VALIDATE PICKED TEAMS!!!!!
+        //  Make sure tiebreaker is a number
+        if(typeof tieBreaker !== "number") throw new ServerError("Invalid tiebreaker");
+
+        // Make sure each pickedTeam is apart of a unique selection
+        const pickedTeamsStringified = pickedTeams.map(team => JSON.stringify(team));
+        const selectionsPicked: string[] = []
         
+        for(const selection of pickData.selections) {
+            for(const team of selection.teams) {
+                if(pickedTeamsStringified.includes(JSON.stringify(team._id))) {
+                    if(selectionsPicked.includes(JSON.stringify(selection._id))) {
+                        throw new ServerError("Invalid team selection.")
+                    }
+
+                    selectionsPicked.push(JSON.stringify(selection._id))
+                }
+            }
+        }
+
+        // TODO: VALIDATE PICKED TEAMS!!!!!
+
         // const hasTiebreaker = pickData.selections.find(selection => selection.isTiebreaker);
         // const checkLength = hasTiebreaker ? pickData.selections.length - 1 : pickData.selections.length; 
 

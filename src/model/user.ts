@@ -10,6 +10,7 @@ const stats = new mongoose.Schema({
     longestWinStreak: { type: Number, default: 0 },
     hottestPool: { type: Number, default: 0 },
     craziestUpset: { type: Number, default: 0 },
+    
 });
 
 const twitterData = new mongoose.Schema({

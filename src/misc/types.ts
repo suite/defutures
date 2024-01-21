@@ -137,6 +137,7 @@ export type PickSelectionSchema = {
 }
 
 export type PickSchema = {
+    save(): unknown;
     _id: ObjectId,
     title: string,
     description: string,
