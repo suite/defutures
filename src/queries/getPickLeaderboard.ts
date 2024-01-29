@@ -37,8 +37,6 @@ export async function getPickLeaderboard(pickId: ObjectId) {
             { $project: { placedBets: 1 } }
         ]);
 
-        console.log('result', result);
-
         if (result.length === 0) {
             throw new Error('Pick not found');
         }
