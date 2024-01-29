@@ -109,7 +109,7 @@ router.get('/status', async (req, res) => {
     res.status(200).json({ success: true, user });
 });
 
-// DEPRECATED USE FOR TWITTER LOGIN
+// DEPRECATED USE FOR OATUH LOGIN
 router.post('/confirmWallet', async (req, res) => {
     const { publicKey, signedMessage, isLogin } = req.body;
 

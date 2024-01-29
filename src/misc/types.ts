@@ -186,6 +186,7 @@ export type WagerUser = {
     twitterData: TwitterData | null;
     roles: Roles;
     stats: Stats;
+    _id: ObjectId;
 }
 
 export type TeamOption = {

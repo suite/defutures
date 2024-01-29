@@ -6,29 +6,48 @@ import { ServerError } from "../misc/serverError";
 export async function getPickLeaderboard(pickId: ObjectId) {
     try {
         const result = await Pick.aggregate([
-            // Match the specific pick
             { $match: { _id: pickId } },
-            // Unwind the placedBets array to process each bet individually
             { $unwind: "$placedBets" },
-            // Sort by points and then by tieBreakerPoints in descending order
+            {
+                $lookup: {
+                    from: "user",
+                    localField: "placedBets.wagerUserId",
+                    foreignField: "_id",
+                    as: "placedBets.wagerUserDetails"
+                }
+            },
+            { 
+                $addFields: {
+                    "placedBets.wagerUserDetails": {
+                        $cond: {
+                            if: { $eq: [{$size: "$placedBets.wagerUserDetails"}, 0] },
+                            then: [{}], // or your preferred default value
+                            else: "$placedBets.wagerUserDetails"
+                        }
+                    }
+                }
+            },
             { $sort: { "placedBets.points": -1, "placedBets.tieBreakerPoints": -1 } },
-            // Group back the bets into a single document
-            { $group: { _id: "$_id", placedBets: { $push: "$placedBets" } } },
-            // Optionally, project fields if needed
+            {
+                $group: {
+                    _id: "$_id",
+                    placedBets: { $push: "$placedBets" }
+                }
+            },
             { $project: { placedBets: 1 } }
         ]);
 
-        // The result is an array of documents, but we expect only one document
-        // corresponding to the pickId
+        console.log('result', result);
+
         if (result.length === 0) {
             throw new Error('Pick not found');
         }
 
         return result[0].placedBets;
     } catch (err) {
-        LOGTAIL.error(`Error getting ${pickId} leaderboard ${err}`)
-
-        if(err instanceof ServerError) return err;
-        return new ServerError("Internal error has occured.");
+        LOGTAIL.error(`Error getting ${pickId} leaderboard ${err}`);
+        if (err instanceof ServerError) return err;
+    
+        return new ServerError("Internal error has occurred.");
     }
 }

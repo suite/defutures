@@ -12,7 +12,10 @@ import { Logtail } from "@logtail/node";
 import { getTeamWinner, getUpdateSelection, setSelectionTeamWinner, updateStats } from "../misc/utils";
 import passport from "passport";
 import { cancelWager } from "../queries/cancelWager";
+import axios from "axios";
+
 const TwitterStrategy = require("@superfaceai/passport-twitter-oauth2").Strategy;
+const OAuth2Strategy = require('passport-oauth2').Strategy;
 
 export const PASSPORT_SECRET = process.env.PASSPORT_SECRET!;
 
@@ -97,6 +100,7 @@ export const connectMongo = async () => {
   // Connecting to the database
   try {
     initTwitter();
+    initDeId();
 
     await mongoose.connect(MONGO_URL!)
     
@@ -152,6 +156,39 @@ const initTwitter = () => {
     cb(null, obj);
   });
 }
+
+const initDeId = () => {
+  passport.use(new OAuth2Strategy({
+    authorizationURL: process.env.DEID_AUTH_URL!,
+    tokenURL: process.env.DEID_TOKEN_URL!,
+    clientID: process.env.DEID_CLIENT_ID!,
+    clientSecret: process.env.DEID_CLIENT_SECRET!,
+    callbackURL: process.env.DEID_CALLBACK_URL!,
+    state: true,
+    pkce: true,
+    scope: ['socials:read', 'wallets:read'].join(" "),
+  }, async (accessToken: any, refreshToken: any, profile: any, done: any) => {
+    try {
+      const response = await axios.get(process.env.DEID_PROFILE_URL!, {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`
+        }
+      });
+
+      done(null, response.data.profile);
+    } catch (error) {
+      done(error);
+    }
+  }));
+
+  passport.serializeUser((user, cb) => {
+    cb(null, user);
+  });
+
+  passport.deserializeUser((obj: any, cb) => {
+    cb(null, obj);
+  });
+};
 
 // pretty sure agenda handles errors
 AGENDA.define("update status", async (job: Job) => {

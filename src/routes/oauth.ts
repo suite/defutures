@@ -8,8 +8,11 @@ import { WagerUser } from "../misc/types";
 const router = express.Router();
 
 const SCOPES = ['tweet.read', 'users.read'];
+const SCOPES_DEID = ['socials:read', 'wallets:read'].join(" ");
 
 router.get("/login/twitter", passport.authenticate("twitter", { scope: SCOPES }));
+
+router.get("/login/deid", passport.authenticate("oauth2", { scope: SCOPES_DEID }));
 
 router.get("/callback/twitter", 
     passport.authenticate('twitter', { failureRedirect: OAUTH_REDIRECT_URL, assignProperty: 'twitterUser', scope: SCOPES}), 
@@ -49,6 +52,65 @@ router.get("/callback/twitter",
             // Redirect to frontend 
             return res.redirect(`${OAUTH_REDIRECT_URL}`);
         }
+});
+
+router.get("/callback/deid", 
+    passport.authenticate('oauth2', { failureRedirect: OAUTH_REDIRECT_URL, assignProperty: 'deidUser', scope: SCOPES_DEID}), 
+    async (req: any, res) => {
+        if(!(req.deidUser?.id)) {
+            return res.redirect(`${OAUTH_REDIRECT_URL}`);
+       }
+
+       console.log("deid data", req.deidUser)
+
+       try {
+        const publicKey = getLoggedInWallet(req); // Custom function to retrieve wallet
+
+        if(!publicKey) {
+            throw new Error("Could not find public key");
+        }
+
+        // Update or create user with custom OAuth data
+        const newUser = await User.findOneAndUpdate({ publicKey }, { 
+            $set: {
+                publicKey,
+                deidData: {
+                    id: req.deidUser.id,
+                    username: req.deidUser.name,
+                    twitterHandle: req.deidUser.socials?.twitterHandle,
+                    profileImage: req.deidUser.imageUrl,
+                    discordUsername: req.deidUser.socials?.discordUsername,
+                    wallets: req.deidUser.wallets,
+                }
+            }
+        }, { upsert: true, new: true });
+
+        return res.redirect(`${OAUTH_REDIRECT_URL}`);
+
+    } catch(err) {
+        return res.redirect(`${OAUTH_REDIRECT_URL}`);
+    }
+});
+
+// Logout route
+router.post("/logout/deid", async (req, res) => {
+    try {
+        const loggedInWallet = getLoggedInWallet(req);
+
+        if(loggedInWallet === null) {
+            return res.sendStatus(403);
+        }
+
+        await User.findOneAndUpdate({ publicKey: loggedInWallet }, { 
+            $unset: {
+                deidData: null
+            }
+        });
+
+        res.status(200).json({ success: true });
+    } catch (err) {
+        res.status(500).json({ success: false });
+    }
 });
 
 router.post("/logout/twitter", async (req, res) => {

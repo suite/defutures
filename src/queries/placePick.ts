@@ -1,10 +1,10 @@
 import { ObjectId } from "mongodb";
 import { LOGTAIL } from "../config/database";
 import { ServerError } from "../misc/serverError";
-import { PickSchema, PickTeam, TokenBalanceResult } from "../misc/types";
+import { PickSchema, PickTeam, TokenBalanceResult, WagerUser } from "../misc/types";
 import Pick from '../model/pick';
 import { getTokenBalanceChange } from "./solana";
-
+import { getOrCreateUser } from "../misc/userUtils";
 
 export default async function placePick(pickId: ObjectId, pickedTeams: Array<ObjectId>, tieBreaker: number, signature: string): Promise<TokenBalanceResult | ServerError> {
     try {
@@ -83,6 +83,8 @@ export default async function placePick(pickId: ObjectId, pickedTeams: Array<Obj
 
         const publicKey = amountBet.userPublicKey;  
 
+        const user: WagerUser | null = await getOrCreateUser(publicKey);
+
         // Add them to placedBets, increase totalUsers
         await Pick.updateOne({
             _id: pickId, 
@@ -95,7 +97,8 @@ export default async function placePick(pickId: ObjectId, pickedTeams: Array<Obj
                 amounts: [{
                     amount: finalBetAmount,
                     signature
-                }]
+                }],
+                wagerUserId: user._id
             }},
             $inc: {
                 'totalUsers': 1,

@@ -36,6 +36,7 @@ const placedBet = new mongoose.Schema({
     amounts: { type: [betAmount], default: [] },
     transferData: { type: transferData, default: { error: 0 } },
     points: { type: Number, default: 0},
+    wagerUserId: { type: mongoose.Schema.Types.ObjectId, ref: 'WagerUser' }
 });
 
 // pickSelection
