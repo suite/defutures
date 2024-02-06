@@ -19,11 +19,9 @@ export async function getPickLeaderboard(pickId: ObjectId) {
             { 
                 $addFields: {
                     "placedBets.wagerUserDetails": {
-                        $cond: {
-                            if: { $eq: [{$size: "$placedBets.wagerUserDetails"}, 0] },
-                            then: [{}], // or your preferred default value
-                            else: "$placedBets.wagerUserDetails"
-                        }
+                        $ifNull: [{
+                            $arrayElemAt: ["$placedBets.wagerUserDetails", 0]
+                        }, {}] // Replace with {} if array is empty
                     }
                 }
             },
