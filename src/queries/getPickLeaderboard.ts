@@ -10,7 +10,7 @@ export async function getPickLeaderboard(pickId: ObjectId) {
             { $unwind: "$placedBets" },
             {
                 $lookup: {
-                    from: "user",
+                    from: "users",
                     localField: "placedBets.wagerUserId",
                     foreignField: "_id",
                     as: "placedBets.wagerUserDetails"
