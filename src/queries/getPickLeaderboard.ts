@@ -29,14 +29,29 @@ export async function getPickLeaderboard(pickId: ObjectId) {
             {
                 $group: {
                     _id: "$_id",
-                    placedBets: { $push: "$placedBets" }
+                    status: { $first: "$status" }, // Include the status of the pick
+                    placedBets: { $push: "$placedBets" },
                 }
             },
-            { $project: { placedBets: 1 } }
+            {
+                $project: {
+                    status: 1, // Ensure status is included in the final projection
+                    placedBets: 1
+                }
+            }
         ]);
 
         if (result.length === 0) {
             throw new Error('Pick not found');
+        }
+
+        if(result[0].status === "live") {
+            const hiddenTiebreaker = result[0].placedBets.map((bet: any) => {
+                const { tieBreakerPoints, ...rest } = bet; 
+                return rest; 
+            });
+
+            return hiddenTiebreaker;
         }
 
         return result[0].placedBets;
