@@ -38,6 +38,8 @@ export default async function updatePick(
 
             if (typeof tiebreaker !== 'undefined') {
                 bet.tieBreakerPoints = tiebreaker - Math.abs(bet.tieBreaker - tiebreaker);
+            } else {
+                bet.tieBreakerPoints = 0;
             }
         });
 

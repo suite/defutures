@@ -1,7 +1,7 @@
 import express, { Response } from "express";
 import passport from "passport";
 import jwt, { JwtPayload } from 'jsonwebtoken';
-import { KEY, OAUTH_REDIRECT_URL } from "../config/database";
+import { KEY, LOGTAIL, OAUTH_REDIRECT_URL } from "../config/database";
 import User from '../model/user';
 import { WagerUser } from "../misc/types";
 
@@ -88,6 +88,7 @@ router.get("/callback/deid",
         return res.redirect(`${OAUTH_REDIRECT_URL}`);
 
     } catch(err) {
+        LOGTAIL.error(`Could not authenticate deid user ${err}`);
         return res.redirect(`${OAUTH_REDIRECT_URL}`);
     }
 });
