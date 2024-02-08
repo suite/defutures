@@ -47,7 +47,7 @@ export async function getPickLeaderboard(pickId: ObjectId) {
 
         if(result[0].status === "live") {
             const hiddenTiebreaker = result[0].placedBets.map((bet: any) => {
-                const { tieBreakerPoints, ...rest } = bet; 
+                const { tieBreaker, ...rest } = bet; 
                 return rest; 
             });
 
