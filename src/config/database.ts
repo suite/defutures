@@ -23,6 +23,7 @@ export const WALLET_SIGN_MESSAGE_LOGIN = process.env.WALLET_SIGN_MESSAGE_LOGIN!;
 export const WALLET_SIGN_MESSAGE_LOGOUT = process.env.WALLET_SIGN_MESSAGE_LOGOUT!;
 
 export const OAUTH_REDIRECT_URL = process.env.OAUTH_REDIRECT_URL!;
+export const OAUTH_REDIRECT_URL_TWITTER = process.env.OAUTH_REDIRECT_URL_TWITTER! || OAUTH_REDIRECT_URL;
 
 // TODO: Better is dev check, move logtail to env, new for dev
 export const IS_DEV = process.env.HEROKU ? false : true;

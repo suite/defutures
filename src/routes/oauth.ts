@@ -1,7 +1,7 @@
 import express, { Response } from "express";
 import passport from "passport";
 import jwt, { JwtPayload } from 'jsonwebtoken';
-import { KEY, LOGTAIL, OAUTH_REDIRECT_URL } from "../config/database";
+import { KEY, LOGTAIL, OAUTH_REDIRECT_URL, OAUTH_REDIRECT_URL_TWITTER } from "../config/database";
 import User from '../model/user';
 import { WagerUser } from "../misc/types";
 
@@ -15,12 +15,12 @@ router.get("/login/twitter", passport.authenticate("twitter", { scope: SCOPES })
 router.get("/login/deid", passport.authenticate("oauth2", { scope: SCOPES_DEID }));
 
 router.get("/callback/twitter", 
-    passport.authenticate('twitter', { failureRedirect: OAUTH_REDIRECT_URL, assignProperty: 'twitterUser', scope: SCOPES}), 
+    passport.authenticate('twitter', { failureRedirect: OAUTH_REDIRECT_URL_TWITTER, assignProperty: 'twitterUser', scope: SCOPES}), 
     async (req: any, res, next) => {
         // Ensure twitter profile has correct fields
         if(!(req.twitterUser?.username && req.twitterUser?.displayName && req.twitterUser?.id)) {
              // Redirect to frontend 
-             return res.redirect(`${OAUTH_REDIRECT_URL}`);
+             return res.redirect(`${OAUTH_REDIRECT_URL_TWITTER}`);
         }
 
         try {
@@ -46,11 +46,11 @@ router.get("/callback/twitter",
             // TODO: Redirect user to current page their on from req
 
             // Redirect to frontend 
-            return res.redirect(`${OAUTH_REDIRECT_URL}`);
+            return res.redirect(`${OAUTH_REDIRECT_URL_TWITTER}`);
 
         } catch(err) {
             // Redirect to frontend 
-            return res.redirect(`${OAUTH_REDIRECT_URL}`);
+            return res.redirect(`${OAUTH_REDIRECT_URL_TWITTER}`);
         }
 });
 
