@@ -37,6 +37,13 @@ export default async function createWager(title: string,
     gameDate: number, creator: WagerUser, token: string, info: string): Promise<WagerSchema | ServerError> {
 
     try {   
+        // Check if admin game
+        const isAdmin = creator.roles.includes("ADMIN");
+        
+        if(!isAdmin) {
+            throw new ServerError("You gotta be an admin, bro.");
+        }
+
         if(![...Object.keys(TOKEN_MAP), "SOL"].includes(token)) throw new ServerError("Invalid token.");
 
         // Check game cap
@@ -45,8 +52,6 @@ export default async function createWager(title: string,
         if(liveGameCount === null) throw new ServerError("Unable to get live game count.");
         if(liveGameCount >= LIVE_GAME_CAP) throw new ServerError("Game cap reached.");
 
-        // Check if admin game
-        const isAdmin = creator.roles.includes("ADMIN");
 
         // Date check
         if(!isAdmin) {

@@ -37,7 +37,7 @@ export const userSchema = new mongoose.Schema({
     publicKey: { type: String },
     twitterData: { type: twitterData, default: null },
     deidData: { type: deidData, default: null },
-    roles: { type: [String], enum: ['ADMIN', 'CREATOR', 'DEFAULT'], default: ['DEFAULT', 'CREATOR'] },
+    roles: { type: [String], enum: ['ADMIN', 'CREATOR', 'DEFAULT'], default: ['DEFAULT'] },
     stats: { type: stats },
 });
 
