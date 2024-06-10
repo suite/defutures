@@ -167,6 +167,20 @@ export type TwitterData = {
     profileImage: string;
 }
 
+type deidWallet = {
+    network: string,
+    address: string
+}
+
+export type DeIDData = {
+    id: string,
+    username: string | null,
+    twitterHandle: string | null,
+    profileImage: string | null,
+    discordUsername: string | null,
+    wallets: deidWallet[] | null
+}
+
 export type Stats = {
     totalWins: number;
     totalGamesCreated: number;
@@ -184,6 +198,7 @@ type Role = 'ADMIN' | 'CREATOR' | 'DEFAULT';
 export type WagerUser = {
     publicKey: string;
     twitterData: TwitterData | null;
+    deidData: DeIDData | null;
     roles: Roles;
     stats: Stats;
     _id: ObjectId;

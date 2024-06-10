@@ -4,6 +4,7 @@ import nacl from "tweetnacl";
 import { confirmWalletSigned, getObjectId, isValidPubKey, isWhitelisted } from "../misc/utils";
 import Wager from "../model/wager";
 import Pick from "../model/pick";
+import ActivityFeed from "../model/activityFeed";
 import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 import placeBet from "../queries/placeBet";
@@ -23,6 +24,7 @@ import createWager from "../queries/createWager";
 import declareWagerWinner from "../queries/declareWagerWinner";
 import { getLeaderboard } from "../queries/leaderboardNew";
 import { getPickLeaderboard } from "../queries/getPickLeaderboard";
+import { broadcastAndSaveActivity } from "../config/websocket";
 
 const router = express.Router();
 
@@ -424,5 +426,40 @@ router.post('/declareWinner', creatorMiddleware, async (req, res) => {
 
     res.status(200).json({ message: "Declared winner", data: result })
 })
+
+router.get('/testSocket', async (req, res) => {
+    await broadcastAndSaveActivity(null, "testevnet")
+    
+    res.status(200).json({ message: "sent data" });
+});
+
+router.get('/activity-feed', async (req, res) => {
+    try {
+      const activityFeed = await ActivityFeed.find().populate('user').sort({ timestamp: -1 });
+  
+      res.status(200).json({ message: 'Fetched activity feed', data: activityFeed });
+    } catch (error) {
+      const serverError = new ServerError('Failed to fetch activity feed');
+      res.status(500).json({ message: serverError.message, data: serverError });
+    }
+});
+  
+router.get('/activity-feed/:userId', async (req, res) => {
+    const { userId } = req.params;
+  
+    try {
+      const userActivityFeed = await ActivityFeed.find({ user: userId }).populate('user').sort({ timestamp: -1 });
+  
+      if (userActivityFeed.length === 0) {
+        const notFoundError = new ServerError('No activity feed found for the specified user');
+        return res.status(404).json({ message: notFoundError.message, data: notFoundError });
+      }
+  
+      res.status(200).json({ message: 'Fetched user activity feed', data: userActivityFeed });
+    } catch (error) {
+      const serverError = new ServerError('Failed to fetch user activity feed');
+      res.status(500).json({ message: serverError.message, data: serverError });
+    }
+});
 
 export default router;

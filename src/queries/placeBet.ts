@@ -7,6 +7,7 @@ import { ServerError } from "../misc/serverError";
 import { FEE_MULTIPLIER, LOGTAIL } from "../config/database";
 import { tweetImage } from "../misc/imageUtils";
 import { addToTotalGamesPlayed, addToTotalPoints, getOrCreateUser } from "../misc/userUtils";
+import { broadcastAndSaveActivity } from "../config/websocket";
 
 export default async function placeBet(wagerId: ObjectId, selectionId: ObjectId, signature: string): Promise<TokenBalanceResult | ServerError> {
     try {
@@ -105,6 +106,8 @@ export default async function placeBet(wagerId: ObjectId, selectionId: ObjectId,
             addToTotalPoints(publicKey)
         ]);
 
+        broadcastAndSaveActivity(user, 'placeBet', selectedSelection._id.toString(), finalBetAmount);
+        
         // Tweet image
         tweetImage(TweetType.GAME_PICK, wagerData, publicKey, finalBetAmount, selectedSelection.title, otherSelection.title, user || undefined);
 

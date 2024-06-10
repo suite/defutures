@@ -5,13 +5,16 @@
 import { Keypair, PublicKey } from "@solana/web3.js";
 import { ObjectId } from "mongodb";
 import { ServerError } from "../misc/serverError";
-import { AirdropAmount, WagerSchema, WagerWalletSchema } from "../misc/types";
+import { AirdropAmount, WagerSchema, WagerUser, WagerWalletSchema } from "../misc/types";
 import { getWagerEscrowWallet } from "../misc/utils";
 import Wager from '../model/wager';
+import User from '../model/user';
 import AsyncLock from 'async-lock';
 import { LOGTAIL } from "../config/database";
 import sendFees from "./sendFees";
 import { transferToken } from "./solana";
+import { broadcastAndSaveActivity } from "../config/websocket";
+import { getOrCreateUser } from "../misc/userUtils";
 
 const lock = new AsyncLock();
 
@@ -57,6 +60,9 @@ export default async function airdrop(wagerId: ObjectId) {
                         error
                     } 
                 });
+
+                const user: WagerUser | null = await getOrCreateUser(toPubkey.toString());
+                broadcastAndSaveActivity(user, 'win', selectionId.toString(), amount);
             }
 
             LOGTAIL.info(`Completed airdrops for wager ${wagerId}`);

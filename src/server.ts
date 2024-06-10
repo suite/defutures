@@ -11,6 +11,9 @@ import passport from "passport";
 import { WagerUser } from "./misc/types";
 import { getStatus } from "./queries/getStatus";
 import { getTokenBalanceChange } from "./queries/solana";
+import http from 'http';
+import { Server } from 'socket.io';
+import { setupWebSocket } from "./config/websocket";
 
 const app = express();
 const port = process.env.PORT || 3001;
@@ -116,51 +119,57 @@ const authorization = async (req: express.Request, res: express.Response, next: 
     return next();
 };
 
+export let io: Server;
+
 (async () => {
-    await connectMongo();
+  await connectMongo();
 
-    console.log("Testing Solana calls...");
+  console.log("Testing Solana calls...");
 
-    const sig1 = "q1j2PxBMbXxsqBucgYyPNziGaLWcKuZPabK5qix36XFE6fmsYayavWvTFwFq87jmf2zPGJUczjtX18hjJLLdASb";
-    const sig2 = "NSUjB4ndoYHworZr2ibhnir2SWnrLc3pP2MkSPwsvXSmBpk7vJDt46yLRaVibxJ5TQXz8ufNBiNiwrrzkn117Hu";
+  const sig1 = "q1j2PxBMbXxsqBucgYyPNziGaLWcKuZPabK5qix36XFE6fmsYayavWvTFwFq87jmf2zPGJUczjtX18hjJLLdASb";
+  const sig2 = "NSUjB4ndoYHworZr2ibhnir2SWnrLc3pP2MkSPwsvXSmBpk7vJDt46yLRaVibxJ5TQXz8ufNBiNiwrrzkn117Hu";
 
-    const escrow = "FwayagtQWf464RTYqguK3Mz4M3aGtdZ6LbyBaMJqJLZp";
-    const escrow2 = "DxN7Tawr7eyzYYGgJEojQZnaLu6bDw4wDK8oiAzVUnZL";
+  const escrow = "FwayagtQWf464RTYqguK3Mz4M3aGtdZ6LbyBaMJqJLZp";
+  const escrow2 = "DxN7Tawr7eyzYYGgJEojQZnaLu6bDw4wDK8oiAzVUnZL";
 
-    const exchange =  await getTokenBalanceChange(sig1, escrow, "DUST");
-    // const exchange2 = await getTokenBalanceChange(sig2, escrow2, "SOL");
+  const exchange = await getTokenBalanceChange(sig1, escrow, "DUST");
+  // const exchange2 = await getTokenBalanceChange(sig2, escrow2, "SOL");
 
-    console.log(`Exchange sig1: `, exchange);
-    // console.log(`Exchange2 sig2: `, exchange2);
+  console.log(`Exchange sig1: `, exchange);
+  // console.log(`Exchange2 sig2: `, exchange2);
 
-    const corsOpts = { credentials: true, origin: [...CORS_ORIGIN.split(',')] }
+  const corsOpts = { credentials: true, origin: [...CORS_ORIGIN.split(',')] };
 
-    console.log("Cors opts:", corsOpts)
+  console.log("Cors opts:", corsOpts);
 
-    app.use(express.json());
-    app.use(cors(corsOpts));
-    app.use(cookieParser());
+  const server = http.createServer(app);
+  io = new Server(server, {
+    cors: corsOpts,
+  });
 
-    // Passportjs setup
-    app.use(require('express-session')({ secret: PASSPORT_SECRET, resave: false, saveUninitialized: false }));
-    app.use(passport.initialize());
-    app.use(passport.session());
+  setupWebSocket();
 
-    // Public api
-    app.use('/api', apiRoute);
+  app.use(express.json());
+  app.use(cors(corsOpts));
+  app.use(cookieParser());
 
-    // Protected api
-    app.use('/protected', authorization, protectedRoute);
+  // Passportjs setup
+  app.use(require('express-session')({ secret: PASSPORT_SECRET, resave: false, saveUninitialized: false }));
+  app.use(passport.initialize());
+  app.use(passport.session());
 
-    // Oauth
-    app.use('/oauth', oauthRoute);
+  // Public api
+  app.use('/api', apiRoute);
 
-    const server = app.listen(port, () => {
-        console.log(`Example app listening on port ${port}`)
-    })
+  // Protected api
+  app.use('/protected', authorization, protectedRoute);
 
-    server.timeout = 240000;
+  // Oauth
+  app.use('/oauth', oauthRoute);
+
+  server.listen(port, () => {
+    console.log(`Example app listening on port ${port}`);
+  });
+
+  server.timeout = 240000;
 })();
-
-
-
