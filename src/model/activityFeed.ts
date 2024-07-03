@@ -1,7 +1,7 @@
 import mongoose, { Schema } from 'mongoose';
 
 const activityFeedSchema = new mongoose.Schema({
-  user: { type: Schema.Types.ObjectId, ref: 'User' },
+  user: { type: Schema.Types.ObjectId, ref: 'user' },
   event: { type: String },
   amount: { type: Number },
   selection: { type: String },
