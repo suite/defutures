@@ -106,7 +106,7 @@ export default async function placeBet(wagerId: ObjectId, selectionId: ObjectId,
             addToTotalPoints(publicKey)
         ]);
 
-        broadcastAndSaveActivity(user, 'placeBet', selectedSelection._id.toString(), finalBetAmount);
+        broadcastAndSaveActivity(user, 'placeBet', selectedSelection.title, finalBetAmount);
         
         // Tweet image
         tweetImage(TweetType.GAME_PICK, wagerData, publicKey, finalBetAmount, selectedSelection.title, otherSelection.title, user || undefined);
