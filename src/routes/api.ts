@@ -440,7 +440,7 @@ router.get('/activity-feed', async (req, res) => {
       res.status(200).json({ message: 'Fetched activity feed', data: activityFeed });
     } catch (error) {
       const serverError = new ServerError('Failed to fetch activity feed');
-      res.status(500).json({ message: serverError.message, data: serverError });
+      res.status(400).json({ message: serverError.message, data: serverError });
     }
 });
   
@@ -452,13 +452,13 @@ router.get('/activity-feed/:userId', async (req, res) => {
   
       if (userActivityFeed.length === 0) {
         const notFoundError = new ServerError('No activity feed found for the specified user');
-        return res.status(404).json({ message: notFoundError.message, data: notFoundError });
+        return res.status(400).json({ message: notFoundError.message, data: notFoundError });
       }
   
       res.status(200).json({ message: 'Fetched user activity feed', data: userActivityFeed });
     } catch (error) {
       const serverError = new ServerError('Failed to fetch user activity feed');
-      res.status(500).json({ message: serverError.message, data: serverError });
+      res.status(400).json({ message: serverError.message, data: serverError });
     }
 });
 

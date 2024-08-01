@@ -22,5 +22,10 @@ export const broadcastAndSaveActivity = async (user: WagerUser | null, event: st
   
     await activity.save();
   
+    const broadcastActivity = {
+      ...activity.toObject(),
+      user: user
+    };
+
     io.emit('activityFeed', activity);
 };
