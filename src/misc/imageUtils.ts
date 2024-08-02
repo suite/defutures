@@ -669,54 +669,56 @@ export const createBigWinnersImage = async (wager: WagerSchema): Promise<Buffer 
 }
 
 export const tweetImage = async (tweetType: TweetType, wager: WagerSchema, publicKey: string, betAmount: number, pickedTeam: string, otherTeam: string, user?: WagerUser) => {
-    try {
-        const roundedBetAmount = Math.floor(betAmount * 100) / 100;
+    // TODO: not good 
+    return;
+    // try {
+    //     const roundedBetAmount = Math.floor(betAmount * 100) / 100;
 
-        const formattedPublicKey = formatPublicKey(publicKey);
-        const username = user?.twitterData?.username || formattedPublicKey;
+    //     const formattedPublicKey = formatPublicKey(publicKey);
+    //     const username = user?.twitterData?.username || formattedPublicKey;
         
-        let imgData;
-        let tweetText;
-        switch(tweetType) {
-            case TweetType.GAME_PICK:
-                imgData =  await createTwitterImage(wager, formattedPublicKey, roundedBetAmount, pickedTeam, otherTeam, user);
-                tweetText = (user?.twitterData?.username) 
-                    ? `${getRandomPhrase()} @${username}\n\nYou picked ${pickedTeam} to beat ${otherTeam} with ${roundedBetAmount} $${wager.token} on @degenpicksxyz`
-                    : `Wallet ${username} picked ${pickedTeam} to beat ${otherTeam} with ${roundedBetAmount} $${wager.token} on @degenpicksxyz`
-                break;
-            case TweetType.GAME_CREATION:
-                imgData = await createInitateGameTwitterImage(wager);
-                tweetText = (wager.isAdmin) 
-                    ? `The @degenpicksxyz team just made a new $${wager.token} pool.` 
-                    : `LFG @${username} just made a new $${wager.token} pool on @degenpicksxyz`
-                break;
-            case TweetType.GAME_WINNERS:
-                imgData = await createBigWinnersImage(wager);
-                tweetText = `Congrats to the BIG winners from this pool on @degenpicksxyz`;
-                break;
-            default:
-                throw new Error("Invalid tweet type");
-        }
+    //     let imgData;
+    //     let tweetText;
+    //     switch(tweetType) {
+    //         case TweetType.GAME_PICK:
+    //             imgData =  await createTwitterImage(wager, formattedPublicKey, roundedBetAmount, pickedTeam, otherTeam, user);
+    //             tweetText = (user?.twitterData?.username) 
+    //                 ? `${getRandomPhrase()} @${username}\n\nYou picked ${pickedTeam} to beat ${otherTeam} with ${roundedBetAmount} $${wager.token} on @degenpicksxyz`
+    //                 : `Wallet ${username} picked ${pickedTeam} to beat ${otherTeam} with ${roundedBetAmount} $${wager.token} on @degenpicksxyz`
+    //             break;
+    //         case TweetType.GAME_CREATION:
+    //             imgData = await createInitateGameTwitterImage(wager);
+    //             tweetText = (wager.isAdmin) 
+    //                 ? `The @degenpicksxyz team just made a new $${wager.token} pool.` 
+    //                 : `LFG @${username} just made a new $${wager.token} pool on @degenpicksxyz`
+    //             break;
+    //         case TweetType.GAME_WINNERS:
+    //             imgData = await createBigWinnersImage(wager);
+    //             tweetText = `Congrats to the BIG winners from this pool on @degenpicksxyz`;
+    //             break;
+    //         default:
+    //             throw new Error("Invalid tweet type");
+    //     }
 
-        if(!imgData || !tweetText) {
-            throw new Error("Could not get image data");
-        }
+    //     if(!imgData || !tweetText) {
+    //         throw new Error("Could not get image data");
+    //     }
 
-        // Bad for algo!
-        // tweetText += `\n\nhttps://app.degenpicks.xyz/${wager._id}`;
+    //     // Bad for algo!
+    //     // tweetText += `\n\nhttps://app.degenpicks.xyz/${wager._id}`;
     
-        const mediaId = await TWITTER.v1.uploadMedia(imgData, { type: 'image/png' });
+    //     const mediaId = await TWITTER.v1.uploadMedia(imgData, { type: 'image/png' });
     
-        const featuredText = getFeaturedText(wager);
-        if(featuredText) {
-            tweetText += `\n\n${featuredText}`;
-        }
+    //     const featuredText = getFeaturedText(wager);
+    //     if(featuredText) {
+    //         tweetText += `\n\n${featuredText}`;
+    //     }
         
-        await TWITTER.v2.tweet(tweetText, { media: { media_ids: [mediaId ]} });
-    } catch (err) {
-        console.log(`Error tweeting ${err}`)
-        LOGTAIL.error(`Error tweeting ${err}`)
-    }
+    //     await TWITTER.v2.tweet(tweetText, { media: { media_ids: [mediaId ]} });
+    // } catch (err) {
+    //     console.log(`Error tweeting ${err}`)
+    //     LOGTAIL.error(`Error tweeting ${err}`)
+    // }
 
 }
 
